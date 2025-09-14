@@ -1,0 +1,122 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: gang-grbk-blog
+
+  # 数据源配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/gang_grbk_blog?useUnicode=true&characterEncoding=utf8&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+
+  # Redis配置
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      password:
+      database: 0
+      timeout: 10000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+
+  # RabbitMQ配置
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+
+  # Jackson配置
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: NON_NULL
+
+  # 文件上传配置
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 100MB
+
+  # 禁用DDL应用运行器
+  sql:
+    init:
+      mode: never
+      platform: mysql
+      schema-username: root
+      data-username: root
+
+# MyBatis Plus配置
+mybatis-plus:
+  configuration:
+    # 驼峰下划线转换
+    map-underscore-to-camel-case: true
+    # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  # 实体扫描，多个package用逗号或者分号分隔
+  type-aliases-package: org.example.ganggrbkbackend.domain.entity
+  # Mapper.xml文件位置
+  mapper-locations: classpath*:mapper/*.xml
+  global-config:
+    db-config:
+      # 主键类型
+      id-type: ASSIGN_ID
+      # 逻辑删除配置
+      logic-delete-field: deleteFlag
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+    # 禁用SQL解析器避免启动问题
+    sql-parser-cache: false
+  # 禁用DDL自动执行
+  check-config-location: false
+
+# Knife4j文档配置
+knife4j:
+  enable: true
+  openapi:
+    title: Gang GRBK Blog API
+    description: 个人博客系统API文档
+    version: 1.0
+    contact:
+      name: Gang
+      email: gang@example.com
+
+# 日志配置
+logging:
+  level:
+    org.example.ganggrbkbackend: DEBUG
+    org.springframework.security: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'
+
+# 管理端点配置
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# 自定义配置
+jwt:
+  secret: gang-grbk-blog-jwt-secret-key-2024-super-secure-key
+  expiration: 86400
+
+gang:
+  blog:
+    # 文件存储路径
+    upload:
+      path: ./uploads/

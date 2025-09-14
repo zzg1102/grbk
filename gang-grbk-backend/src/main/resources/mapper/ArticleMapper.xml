@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.example.ganggrbkbackend.mapper.ArticleMapper">
+
+    <!-- 分页查询文章列表 -->
+    <select id="selectArticlePage" resultType="org.example.ganggrbkbackend.domain.vo.ArticleListVO">
+        SELECT
+        a.id,
+        a.title,
+        a.summary,
+        a.cover_image,
+        a.view_count,
+        a.like_count,
+        a.comment_count,
+        a.is_top,
+        a.status,
+        a.publish_time,
+        a.create_time,
+        c.category_name,
+        u.nickname AS author_name
+        FROM tb_article a
+        LEFT JOIN tb_category c ON a.category_id = c.id
+        LEFT JOIN tb_user u ON a.author_id = u.id
+        <where>
+            a.delete_flag = 0
+            <if test="query.title != null and query.title != ''">
+                AND a.title LIKE CONCAT('%', #{query.title}, '%')
+            </if>
+            <if test="query.categoryId != null">
+                AND a.category_id = #{query.categoryId}
+            </if>
+            <if test="query.status != null">
+                AND a.status = #{query.status}
+            </if>
+            <if test="query.authorId != null">
+                AND a.author_id = #{query.authorId}
+            </if>
+        </where>
+        <choose>
+            <when test="query.sortField == 'create_time'">
+                ORDER BY a.create_time ${query.sortOrder}
+            </when>
+            <when test="query.sortField == 'publish_time'">
+                ORDER BY a.publish_time ${query.sortOrder}
+            </when>
+            <when test="query.sortField == 'view_count'">
+                ORDER BY a.view_count ${query.sortOrder}
+            </when>
+            <when test="query.sortField == 'like_count'">
+                ORDER BY a.like_count ${query.sortOrder}
+            </when>
+            <otherwise>
+                ORDER BY a.is_top DESC, a.create_time DESC
+            </otherwise>
+        </choose>
+    </select>
+
+    <!-- 根据ID查询文章详情 -->
+    <select id="selectArticleDetailById" resultType="org.example.ganggrbkbackend.domain.vo.ArticleDetailVO">
+        SELECT
+        a.id,
+        a.title,
+        a.summary,
+        a.content,
+        a.cover_image,
+        a.view_count,
+        a.like_count,
+        a.comment_count,
+        a.is_top,
+        a.status,
+        a.publish_time,
+        a.create_time,
+        a.update_time,
+        c.id AS category_id,
+        c.category_name,
+        u.id AS author_id,
+        u.nickname AS author_name,
+        u.avatar AS author_avatar
+        FROM tb_article a
+        LEFT JOIN tb_category c ON a.category_id = c.id
+        LEFT JOIN tb_user u ON a.author_id = u.id
+        WHERE a.id = #{id} AND a.delete_flag = 0
+    </select>
+
+    <!-- 查询热门文章 -->
+    <select id="selectHotArticles" resultType="org.example.ganggrbkbackend.domain.vo.ArticleListVO">
+        SELECT
+        a.id,
+        a.title,
+        a.summary,
+        a.cover_image,
+        a.view_count,
+        a.like_count,
+        a.comment_count,
+        a.is_top,
+        a.status,
+        a.publish_time,
+        a.create_time,
+        c.category_name,
+        u.nickname AS author_name
+        FROM tb_article a
+        LEFT JOIN tb_category c ON a.category_id = c.id
+        LEFT JOIN tb_user u ON a.author_id = u.id
+        WHERE a.status = 1 AND a.delete_flag = 0
+        ORDER BY a.view_count DESC, a.like_count DESC, a.publish_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 查询最新文章 -->
+    <select id="selectLatestArticles" resultType="org.example.ganggrbkbackend.domain.vo.ArticleListVO">
+        SELECT
+        a.id,
+        a.title,
+        a.summary,
+        a.cover_image,
+        a.view_count,
+        a.like_count,
+        a.comment_count,
+        a.is_top,
+        a.status,
+        a.publish_time,
+        a.create_time,
+        c.category_name,
+        u.nickname AS author_name
+        FROM tb_article a
+        LEFT JOIN tb_category c ON a.category_id = c.id
+        LEFT JOIN tb_user u ON a.author_id = u.id
+        WHERE a.status = 1 AND a.delete_flag = 0
+        ORDER BY a.publish_time DESC, a.create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- 根据分类ID查询文章数量 -->
+    <select id="countByCategoryId" resultType="long">
+        SELECT COUNT(1)
+        FROM tb_article
+        WHERE category_id = #{categoryId} AND delete_flag = 0
+    </select>
+
+    <!-- 更新文章浏览量 -->
+    <update id="updateViewCount">
+        UPDATE tb_article
+        SET view_count = #{viewCount}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新文章点赞数 -->
+    <update id="updateLikeCount">
+        UPDATE tb_article
+        SET like_count = #{likeCount}
+        WHERE id = #{id}
+    </update>
+
+    <!-- 更新文章评论数 -->
+    <update id="updateCommentCount">
+        UPDATE tb_article
+        SET comment_count = #{commentCount}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
