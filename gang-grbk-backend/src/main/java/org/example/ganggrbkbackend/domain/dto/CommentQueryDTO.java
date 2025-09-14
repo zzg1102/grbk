@@ -15,6 +15,8 @@ public class CommentQueryDTO {
 
     private String content;
 
+    private String keyword;
+
     private Integer isReview;
 
     private String startTime;

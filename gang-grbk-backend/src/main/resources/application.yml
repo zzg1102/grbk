@@ -49,6 +49,13 @@ spring:
       max-file-size: 10MB
       max-request-size: 100MB
 
+  # 热部署配置
+  devtools:
+    restart:
+      enabled: true
+    livereload:
+      enabled: true
+
   # 禁用DDL应用运行器
   sql:
     init:

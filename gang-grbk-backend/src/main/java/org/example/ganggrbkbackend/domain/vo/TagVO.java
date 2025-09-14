@@ -13,9 +13,7 @@ public class TagVO {
 
     private String color;
 
-    private String description;
-
-    private Integer status;
+    private Integer useCount;
 
     private Integer articleCount;
 

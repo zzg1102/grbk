@@ -48,7 +48,9 @@ CREATE TABLE `tb_tag` (
     `id` BIGINT NOT NULL COMMENT '标签ID',
     `tag_name` VARCHAR(100) NOT NULL COMMENT '标签名称',
     `tag_color` VARCHAR(20) COMMENT '标签颜色',
+    `tag_desc` TEXT COMMENT '标签描述',
     `use_count` INT DEFAULT 0 COMMENT '使用次数',
+    `status` TINYINT DEFAULT 1 COMMENT '状态：0-禁用，1-正常',
     `delete_flag` TINYINT DEFAULT 0 COMMENT '删除标志：0-未删除，1-已删除',
     `create_by` BIGINT COMMENT '创建人',
     `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
@@ -179,6 +181,35 @@ INSERT INTO `tb_tag` (`id`, `tag_name`, `tag_color`, `create_by`) VALUES
 (3, 'Vue.js', '#87d068', 1),
 (4, '数据库', '#108ee9', 1),
 (5, '前端', '#722ed1', 1);
+
+-- 插入测试文章
+INSERT INTO `tb_article` (`id`, `title`, `summary`, `content`, `cover_image`, `category_id`, `author_id`, `view_count`, `like_count`, `is_top`, `status`, `publish_time`, `create_by`) VALUES
+(1, 'Spring Boot 3.0 新特性详解', 'Spring Boot 3.0 带来了许多令人兴奋的新特性，本文将详细介绍这些新功能。', '# Spring Boot 3.0 新特性详解\n\n## 概述\n\nSpring Boot 3.0 是一个重大版本更新，带来了许多令人兴奋的新特性和改进。\n\n## 主要新特性\n\n### 1. Java 17 基线要求\nSpring Boot 3.0 要求 Java 17 作为最低版本，这意味着你可以使用所有 Java 17 的新特性。\n\n### 2. 原生镜像支持\n通过 GraalVM，Spring Boot 3.0 提供了更好的原生镜像支持，大大减少了启动时间和内存占用。\n\n### 3. 可观察性改进\nSpring Boot 3.0 在可观察性方面有了显著改进，包括更好的指标、追踪和日志记录。\n\n## 总结\n\nSpring Boot 3.0 是一个值得升级的版本，它带来了许多有用的新特性。', NULL, 1, 1, 156, 23, 1, 1, '2024-01-15 10:30:00', 1),
+(2, 'Vue 3 Composition API 实战指南', 'Vue 3 的 Composition API 为我们提供了更加灵活的代码组织方式，本文将通过实例来展示如何使用。', '# Vue 3 Composition API 实战指南\n\n## 什么是 Composition API\n\nComposition API 是 Vue 3 中引入的一种新的代码组织方式，它允许我们更好地组织和复用代码逻辑。\n\n```javascript\nimport { ref, computed, onMounted } from ''vue''\n\nexport default {\n  setup() {\n    const count = ref(0)\n    \n    const doubleCount = computed(() => count.value * 2)\n    \n    onMounted(() => {\n      console.log(''组件已挂载'')\n    })\n    \n    return {\n      count,\n      doubleCount\n    }\n  }\n}\n```\n\n## 优势\n\n1. 更好的类型推导\n2. 更好的代码组织\n3. 更容易复用逻辑\n\n## 结论\n\nComposition API 是 Vue 3 的一大亮点，值得深入学习。', NULL, 1, 1, 89, 15, 0, 1, '2024-01-14 14:20:00', 1),
+(3, '我的编程学习心得', '分享一下我在编程学习路上的一些心得和体会，希望对大家有所帮助。', '# 我的编程学习心得\n\n## 开始的困惑\n\n刚开始学习编程的时候，我也和大多数人一样，感到非常困惑。面对大量的编程语言、框架和工具，不知道从何开始。\n\n## 找到方向\n\n经过一段时间的摸索，我发现学习编程最重要的是：\n\n1. **打好基础** - 不要急于学习框架，先把基础语法掌握好\n2. **多实践** - 光看不练是学不会的，一定要多写代码\n3. **持续学习** - 技术更新很快，要保持学习的习惯\n\n## 我的建议\n\n对于初学者，我建议：\n\n- 选择一门语言深入学习\n- 多看优秀的开源项目\n- 参与开源社区\n- 写技术博客总结\n\n## 结语\n\n学习编程是一个长期的过程，希望大家都能坚持下去！', NULL, 2, 1, 234, 45, 0, 1, '2024-01-13 09:15:00', 1),
+(4, 'MySQL 8.0 性能优化技巧', '数据库性能优化是每个开发者都需要掌握的技能，本文分享一些 MySQL 8.0 的优化技巧。', '# MySQL 8.0 性能优化技巧\n\n## 索引优化\n\n### 1. 选择合适的索引类型\n- B-Tree 索引适合大部分查询场景\n- Hash 索引适合等值查询\n- 全文索引适合文本搜索\n\n### 2. 复合索引的使用\n```sql\n-- 创建复合索引\nCREATE INDEX idx_user_status_time ON tb_user (status, create_time);\n\n-- 遵循最左前缀原则\nSELECT * FROM tb_user WHERE status = 1 AND create_time > ''2024-01-01'';\n```\n\n## 查询优化\n\n### 避免 SELECT *\n只查询需要的字段，减少数据传输量。\n\n```sql\n-- 不好的写法\nSELECT * FROM tb_article WHERE status = 1;\n\n-- 好的写法\nSELECT id, title, summary FROM tb_article WHERE status = 1;\n```\n\n### 使用 LIMIT 限制结果集\n```sql\nSELECT id, title FROM tb_article ORDER BY create_time DESC LIMIT 10;\n```\n\n## 配置优化\n\n### innodb_buffer_pool_size\n这是最重要的参数之一，通常设置为物理内存的 70-80%。\n\n### query_cache_size\nMySQL 8.0 已经移除了查询缓存，但可以使用 Redis 等外部缓存。\n\n## 总结\n\n数据库优化是一个系统工程，需要从多个方面入手。', NULL, 1, 1, 178, 32, 0, 1, '2024-01-12 16:45:00', 1),
+(5, '个人博客系统开发日记（一）', '记录开发这个博客系统的过程，分享一些技术选型和实现细节。', '# 个人博客系统开发日记（一）\n\n## 项目起源\n\n一直想要一个属于自己的博客系统，能够完全掌控内容和样式。市面上虽然有很多博客平台，但总感觉不够自由，所以决定自己动手开发一个。\n\n## 技术选型\n\n经过一番思考，我选择了以下技术栈：\n\n### 后端\n- **Spring Boot 3.0** - Java 生态最成熟的框架\n- **MySQL 8.0** - 稳定可靠的关系型数据库\n- **MyBatis Plus** - 简化数据访问层开发\n- **Redis** - 缓存和会话存储\n- **RabbitMQ** - 异步消息处理\n\n### 前端\n- **Vue 3** - 渐进式前端框架\n- **Element Plus** - 优秀的 UI 组件库\n- **Vite** - 快速的构建工具\n\n## 架构设计\n\n系统采用前后端分离的架构，后端提供 RESTful API，前端通过 Ajax 调用接口。\n\n## 开发进度\n\n目前已经完成：\n- 基础架构搭建\n- 用户认证系统\n- 文章管理功能\n- 分类标签管理\n\n## 下一步计划\n\n- 完善前端界面\n- 实现评论系统\n- 添加搜索功能\n- 优化性能\n\n## 感想\n\n开发过程虽然遇到了一些问题，但是看到功能一个个实现，还是很有成就感的。', NULL, 3, 1, 67, 12, 0, 1, '2024-01-11 11:30:00', 1);
+
+-- 插入文章标签关联
+INSERT INTO `tb_article_tag` (`id`, `article_id`, `tag_id`) VALUES
+(1, 1, 1), -- Spring Boot 3.0 新特性详解 - Java
+(2, 1, 2), -- Spring Boot 3.0 新特性详解 - Spring Boot
+(3, 2, 3), -- Vue 3 Composition API 实战指南 - Vue.js
+(4, 2, 5), -- Vue 3 Composition API 实战指南 - 前端
+(5, 3, 1), -- 我的编程学习心得 - Java
+(6, 4, 1), -- MySQL 8.0 性能优化技巧 - Java
+(7, 4, 4), -- MySQL 8.0 性能优化技巧 - 数据库
+(8, 5, 1), -- 个人博客系统开发日记（一） - Java
+(9, 5, 2), -- 个人博客系统开发日记（一） - Spring Boot
+(10, 5, 3); -- 个人博客系统开发日记（一） - Vue.js
+
+-- 插入测试评论
+INSERT INTO `tb_comment` (`id`, `article_id`, `user_id`, `content`, `nickname`, `email`, `ip_address`, `status`, `like_count`) VALUES
+(1, 1, NULL, '写得很详细，对我很有帮助！', '小明', 'xiaoming@example.com', '192.168.1.100', 1, 5),
+(2, 1, NULL, '期待更多 Spring Boot 相关的文章', '技术爱好者', 'tech@example.com', '192.168.1.101', 1, 3),
+(3, 2, NULL, 'Composition API 确实比 Options API 更灵活', 'Vue开发者', 'vue@example.com', '192.168.1.102', 1, 8),
+(4, 3, NULL, '很有共鸣，我也是这么过来的', '程序猿', 'programmer@example.com', '192.168.1.103', 1, 12),
+(5, 3, NULL, '坚持学习真的很重要', '初学者', 'newbie@example.com', '192.168.1.104', 1, 6);
 
 -- 插入系统配置
 INSERT INTO `tb_system_config` (`id`, `config_key`, `config_value`, `config_desc`, `config_type`, `create_by`) VALUES

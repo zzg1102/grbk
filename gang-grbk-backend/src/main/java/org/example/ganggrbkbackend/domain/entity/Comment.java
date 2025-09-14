@@ -68,4 +68,10 @@ public class Comment extends BaseEntity {
      */
     @TableField("like_count")
     private Integer likeCount;
+
+    /**
+     * 是否删除：0-未删除，1-已删除
+     */
+    @TableField("deleted")
+    private Integer deleted;
 }

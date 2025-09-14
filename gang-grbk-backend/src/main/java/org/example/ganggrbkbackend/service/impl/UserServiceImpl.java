@@ -195,8 +195,8 @@ public class UserServiceImpl implements UserService {
         if (user.getStatus() == null) {
             user.setStatus(1);
         }
-        if (user.getGender() == null) {
-            user.setGender(0);
+        if (user.getUserType() == null) {
+            user.setUserType(0);
         }
 
         userMapper.insert(user);

@@ -21,7 +21,7 @@ import java.util.Map;
  */
 @Tag(name = "测试接口", description = "用于测试各种功能的接口")
 @RestController
-@RequestMapping("/v1/test")
+@RequestMapping("/api/v1/test")
 public class TestController {
 
     private final MessageService messageService;

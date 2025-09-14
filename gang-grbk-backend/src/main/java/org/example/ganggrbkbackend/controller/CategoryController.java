@@ -14,15 +14,22 @@ import java.util.List;
 
 @Tag(name = "分类管理", description = "分类相关接口")
 @RestController
-@RequestMapping("/api/categories")
+@RequestMapping("/v1/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
 
     @Operation(summary = "获取所有分类")
-    @GetMapping("/list")
+    @GetMapping
     public Result<List<CategoryVO>> getAllCategories() {
+        List<CategoryVO> categories = categoryService.getAllCategories();
+        return Result.ok(categories);
+    }
+
+    @Operation(summary = "获取所有分类")
+    @GetMapping("/list")
+    public Result<List<CategoryVO>> getAllCategoriesList() {
         List<CategoryVO> categories = categoryService.getAllCategories();
         return Result.ok(categories);
     }

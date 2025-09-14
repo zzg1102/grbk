@@ -71,9 +71,6 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
         BeanUtil.copyProperties(saveDTO, tag);
 
         // 设置默认值
-        if (tag.getStatus() == null) {
-            tag.setStatus(1);
-        }
         if (tag.getColor() == null) {
             tag.setColor("#409EFF");
         }
@@ -126,7 +123,6 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
     @Cacheable(value = "tags", key = "'enabled'")
     public List<TagVO> getEnabledTags() {
         List<Tag> tags = this.list(new LambdaQueryWrapper<Tag>()
-                .eq(Tag::getStatus, 1)
                 .orderByDesc(Tag::getCreateTime));
 
         return tags.stream()
@@ -149,7 +145,6 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
         // TODO: 按照文章数量排序获取热门标签，暂时按创建时间排序
         List<Tag> tags = this.list(new LambdaQueryWrapper<Tag>()
-                .eq(Tag::getStatus, 1)
                 .orderByDesc(Tag::getCreateTime)
                 .last("LIMIT " + limit));
 

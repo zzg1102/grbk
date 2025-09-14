@@ -1,0 +1,420 @@
+// Gang Blog - 现代版式设计系统
+// ===========================================
+
+// 导入字体
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500&display=swap');
+
+// 基础排版重置
+// ===========================================
+
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  font-weight: var(--font-normal);
+}
+
+// 标题系统 - Heading System
+// ===========================================
+
+.h1,
+h1 {
+  font-size: var(--text-5xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-6);
+  font-family: var(--font-sans);
+
+  @media (max-width: 768px) {
+    font-size: var(--text-4xl);
+    margin-bottom: var(--space-4);
+  }
+}
+
+.h2,
+h2 {
+  font-size: var(--text-4xl);
+  font-weight: var(--font-bold);
+  line-height: var(--leading-tight);
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  margin-bottom: var(--space-5);
+  margin-top: var(--space-8);
+
+  @media (max-width: 768px) {
+    font-size: var(--text-3xl);
+    margin-bottom: var(--space-4);
+    margin-top: var(--space-6);
+  }
+}
+
+.h3,
+h3 {
+  font-size: var(--text-3xl);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+  margin-top: var(--space-6);
+
+  @media (max-width: 768px) {
+    font-size: var(--text-2xl);
+    margin-bottom: var(--space-3);
+    margin-top: var(--space-5);
+  }
+}
+
+.h4,
+h4 {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  line-height: var(--leading-tight);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  margin-top: var(--space-5);
+
+  @media (max-width: 768px) {
+    font-size: var(--text-xl);
+  }
+}
+
+.h5,
+h5 {
+  font-size: var(--text-xl);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  margin-bottom: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.h6,
+h6 {
+  font-size: var(--text-lg);
+  font-weight: var(--font-medium);
+  line-height: var(--leading-normal);
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+// 正文系统 - Body Text System
+// ===========================================
+
+.text-lead,
+.lead {
+  font-size: var(--text-xl);
+  line-height: var(--leading-relaxed);
+  color: var(--text-secondary);
+  font-weight: var(--font-normal);
+  margin-bottom: var(--space-6);
+
+  @media (max-width: 768px) {
+    font-size: var(--text-lg);
+  }
+}
+
+.text-body,
+p {
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  color: var(--text-primary);
+  margin-bottom: var(--space-4);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.text-small,
+small {
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+  color: var(--text-secondary);
+}
+
+.text-caption {
+  font-size: var(--text-xs);
+  line-height: var(--leading-normal);
+  color: var(--text-tertiary);
+  font-weight: var(--font-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+// 链接系统 - Link System
+// ===========================================
+
+a {
+  color: var(--primary-600);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+  transition: color var(--duration-fast) var(--ease-out);
+  border-bottom: 1px solid transparent;
+
+  &:hover {
+    color: var(--primary-700);
+    border-bottom-color: var(--primary-300);
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary-500);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}
+
+// 特殊链接样式
+.link-subtle {
+  color: var(--text-secondary);
+  font-weight: var(--font-normal);
+
+  &:hover {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-tertiary);
+  }
+}
+
+.link-accent {
+  color: var(--primary-500);
+  font-weight: var(--font-semibold);
+
+  &:hover {
+    color: var(--primary-600);
+    border-bottom-color: var(--primary-500);
+  }
+}
+
+// 列表系统 - List System
+// ===========================================
+
+ul,
+ol {
+  margin-bottom: var(--space-4);
+  padding-left: var(--space-5);
+}
+
+ul {
+  list-style: none;
+  padding-left: var(--space-4);
+
+  li {
+    position: relative;
+    margin-bottom: var(--space-2);
+    line-height: var(--leading-relaxed);
+
+    &::before {
+      content: '•';
+      color: var(--primary-500);
+      font-weight: var(--font-bold);
+      position: absolute;
+      left: -var(--space-4);
+    }
+  }
+}
+
+ol {
+  counter-reset: list-counter;
+
+  li {
+    counter-increment: list-counter;
+    margin-bottom: var(--space-2);
+    line-height: var(--leading-relaxed);
+
+    &::marker {
+      color: var(--primary-500);
+      font-weight: var(--font-semibold);
+    }
+  }
+}
+
+// 引用系统 - Quote System
+// ===========================================
+
+blockquote {
+  border-left: 4px solid var(--primary-500);
+  background: var(--bg-secondary);
+  padding: var(--space-4) var(--space-5);
+  margin: var(--space-6) 0;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-style: italic;
+  color: var(--text-secondary);
+  position: relative;
+
+  &::before {
+    content: '"';
+    font-size: var(--text-5xl);
+    color: var(--primary-300);
+    position: absolute;
+    top: -var(--space-2);
+    left: var(--space-4);
+    font-family: var(--font-serif);
+    line-height: 1;
+  }
+
+  p {
+    margin-bottom: var(--space-3);
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  cite {
+    display: block;
+    text-align: right;
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+    font-style: normal;
+
+    &::before {
+      content: '— ';
+    }
+  }
+}
+
+// 代码系统 - Code System
+// ===========================================
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  background: var(--bg-tertiary);
+  color: var(--primary-700);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: var(--font-medium);
+}
+
+pre {
+  background: var(--gray-900);
+  color: var(--gray-100);
+  padding: var(--space-5);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  margin: var(--space-6) 0;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-relaxed);
+
+  code {
+    background: none;
+    color: inherit;
+    padding: 0;
+    font-size: inherit;
+  }
+}
+
+// 表格系统 - Table System
+// ===========================================
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: var(--space-6) 0;
+  background: var(--bg-elevated);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+thead {
+  background: var(--bg-secondary);
+
+  th {
+    padding: var(--space-4) var(--space-5);
+    text-align: left;
+    font-weight: var(--font-semibold);
+    color: var(--text-primary);
+    font-size: var(--text-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+tbody {
+  tr {
+    border-bottom: 1px solid var(--border-secondary);
+
+    &:hover {
+      background: var(--bg-secondary);
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  td {
+    padding: var(--space-4) var(--space-5);
+    color: var(--text-primary);
+    line-height: var(--leading-normal);
+  }
+}
+
+// 分隔符 - Divider
+// ===========================================
+
+hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--border-primary) 20%,
+    var(--border-primary) 80%,
+    transparent
+  );
+  margin: var(--space-8) 0;
+}
+
+// 文本工具类 - Text Utilities
+// ===========================================
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+.font-light { font-weight: var(--font-light); }
+.font-normal { font-weight: var(--font-normal); }
+.font-medium { font-weight: var(--font-medium); }
+.font-semibold { font-weight: var(--font-semibold); }
+.font-bold { font-weight: var(--font-bold); }
+
+.italic { font-style: italic; }
+.uppercase { text-transform: uppercase; }
+.lowercase { text-transform: lowercase; }
+.capitalize { text-transform: capitalize; }
+
+.tracking-tight { letter-spacing: -0.025em; }
+.tracking-normal { letter-spacing: 0; }
+.tracking-wide { letter-spacing: 0.025em; }
+
+// 响应式排版
+// ===========================================
+
+@media (max-width: 640px) {
+  :root {
+    --text-xs: 11px;
+    --text-sm: 13px;
+    --text-base: 15px;
+    --text-lg: 17px;
+    --text-xl: 19px;
+    --text-2xl: 22px;
+    --text-3xl: 26px;
+    --text-4xl: 32px;
+    --text-5xl: 40px;
+  }
+}

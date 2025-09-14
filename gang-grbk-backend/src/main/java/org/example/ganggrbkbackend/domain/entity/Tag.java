@@ -28,14 +28,8 @@ public class Tag extends BaseEntity {
     private String color;
 
     /**
-     * 标签描述
+     * 使用次数
      */
-    @TableField("tag_desc")
-    private String description;
-
-    /**
-     * 状态：0-禁用，1-正常
-     */
-    @TableField("status")
-    private Integer status;
+    @TableField("use_count")
+    private Integer useCount;
 }

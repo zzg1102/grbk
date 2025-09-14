@@ -1,0 +1,372 @@
+// Gang Blog - 现代简约主题样式入口
+// ===========================================
+// 基于2024年设计趋势打造的现代简约博客主题
+// 设计理念：内容为王，体验至上
+
+// 1. 变量和工具
+// ===========================================
+@use './variables.scss';
+
+// 2. 基础重置和排版
+// ===========================================
+@use './typography.scss';
+
+// 3. 组件样式
+// ===========================================
+@use './components.scss';
+
+// 4. 布局系统
+// ===========================================
+@use './layout.scss';
+
+// 5. 全局基础样式
+// ===========================================
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-primary);
+  transition: background-color var(--duration-normal) var(--ease-out);
+}
+
+// 6. 滚动条样式
+// ===========================================
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-primary);
+  border-radius: var(--radius-full);
+
+  &:hover {
+    background: var(--text-tertiary);
+  }
+}
+
+// Firefox
+html {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-primary) var(--bg-secondary);
+}
+
+// 7. 选择文本样式
+// ===========================================
+
+::selection {
+  background: var(--primary-100);
+  color: var(--primary-900);
+}
+
+::-moz-selection {
+  background: var(--primary-100);
+  color: var(--primary-900);
+}
+
+// 8. 焦点可见性
+// ===========================================
+
+.focus-visible {
+  outline: 2px solid var(--primary-500);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+// 9. 无障碍支持
+// ===========================================
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// 10. 打印样式
+// ===========================================
+
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid;
+    break-inside: avoid;
+  }
+
+  p, table, blockquote {
+    break-inside: avoid;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
+
+// 11. 暗色主题特定样式
+// ===========================================
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  img {
+    opacity: 0.9;
+  }
+
+  .card:hover {
+    background: var(--gray-800);
+  }
+
+  .navbar {
+    backdrop-filter: blur(8px);
+    background-color: rgba(15, 23, 42, 0.9);
+  }
+}
+
+// 12. 动画类
+// ===========================================
+
+.fade-in {
+  animation: fade-in var(--duration-normal) var(--ease-out);
+}
+
+.slide-up {
+  animation: slide-up var(--duration-normal) var(--ease-out);
+}
+
+.scale-in {
+  animation: scale-in var(--duration-normal) var(--ease-out);
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// 13. 主题切换动画
+// ===========================================
+
+[data-theme] {
+  transition:
+    color var(--duration-normal) var(--ease-out),
+    background-color var(--duration-normal) var(--ease-out),
+    border-color var(--duration-normal) var(--ease-out);
+}
+
+// 14. 博客特定样式
+// ===========================================
+
+// 文章列表项
+.article-item {
+  .article-title {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: var(--font-semibold);
+    line-height: var(--leading-tight);
+    transition: color var(--duration-fast) var(--ease-out);
+
+    &:hover {
+      color: var(--primary-600);
+    }
+  }
+
+  .article-excerpt {
+    color: var(--text-secondary);
+    line-height: var(--leading-relaxed);
+    margin-top: var(--space-2);
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--text-tertiary);
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+  }
+}
+
+// 代码高亮增强
+.hljs {
+  background: var(--gray-900) !important;
+  color: var(--gray-100) !important;
+  padding: var(--space-5) !important;
+  border-radius: var(--radius-lg) !important;
+  font-size: var(--text-sm) !important;
+  line-height: var(--leading-relaxed) !important;
+
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-doctag,
+  .hljs-title,
+  .hljs-section,
+  .hljs-type,
+  .hljs-name,
+  .hljs-strong {
+    color: #569cd6 !important;
+  }
+
+  .hljs-string,
+  .hljs-title.class_,
+  .hljs-title.class_.inherited__,
+  .hljs-title.function_ {
+    color: #ce9178 !important;
+  }
+
+  .hljs-comment,
+  .hljs-quote {
+    color: #6a9955 !important;
+    font-style: italic;
+  }
+
+  .hljs-number,
+  .hljs-regexp,
+  .hljs-link {
+    color: #b5cea8 !important;
+  }
+}
+
+// 15. 工具类扩展
+// ===========================================
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.glass-effect {
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+
+  [data-theme="dark"] & {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+}
+
+.hover-lift {
+  transition: transform var(--duration-fast) var(--ease-out);
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+// 16. 响应式图片
+// ===========================================
+
+.responsive-img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  transition: transform var(--duration-normal) var(--ease-out);
+
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+// 17. 加载状态
+// ===========================================
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal);
+
+  [data-theme="dark"] & {
+    background: rgba(15, 23, 42, 0.8);
+  }
+}
+
+// 18. 错误状态
+// ===========================================
+
+.error-message {
+  padding: var(--space-4);
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-lg);
+  color: #dc2626;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}
+
+.success-message {
+  padding: var(--space-4);
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: var(--radius-lg);
+  color: #059669;
+  font-size: var(--text-sm);
+  line-height: var(--leading-normal);
+}

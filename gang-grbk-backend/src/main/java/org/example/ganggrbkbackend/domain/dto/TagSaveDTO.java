@@ -12,8 +12,4 @@ public class TagSaveDTO {
     private String name;
 
     private String color;
-
-    private String description;
-
-    private Integer status;
 }

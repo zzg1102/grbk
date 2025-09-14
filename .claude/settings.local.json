@@ -8,7 +8,13 @@
       "Bash(java:*)",
       "Bash(mvn clean:*)",
       "Bash(mvn spring-boot:run:*)",
-      "Bash(mvn:*)"
+      "Bash(mvn:*)",
+      "WebSearch",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(taskkill:*)",
+      "Bash(mysql:*)",
+      "Bash(tasklist)"
     ],
     "deny": [],
     "ask": []

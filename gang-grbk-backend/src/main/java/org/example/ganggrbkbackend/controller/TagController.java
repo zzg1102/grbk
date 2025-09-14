@@ -14,15 +14,22 @@ import java.util.List;
 
 @Tag(name = "标签管理", description = "标签相关接口")
 @RestController
-@RequestMapping("/api/tags")
+@RequestMapping("/v1/tags")
 @RequiredArgsConstructor
 public class TagController {
 
     private final TagService tagService;
 
     @Operation(summary = "获取所有标签")
-    @GetMapping("/list")
+    @GetMapping
     public Result<List<TagVO>> getAllTags() {
+        List<TagVO> tags = tagService.getAllTags();
+        return Result.ok(tags);
+    }
+
+    @Operation(summary = "获取所有标签")
+    @GetMapping("/list")
+    public Result<List<TagVO>> getAllTagsList() {
         List<TagVO> tags = tagService.getAllTags();
         return Result.ok(tags);
     }
