@@ -20,4 +20,6 @@ public interface CategoryService extends IService<Category> {
     void deleteCategory(Long id);
 
     List<CategoryVO> getEnabledCategories();
+
+    void incrementViewCount(Long categoryId);
 }

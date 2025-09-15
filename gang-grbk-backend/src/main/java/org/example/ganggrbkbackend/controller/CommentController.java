@@ -12,14 +12,13 @@ import org.example.ganggrbkbackend.domain.dto.CommentSaveDTO;
 import org.example.ganggrbkbackend.domain.vo.CommentVO;
 import org.example.ganggrbkbackend.service.CommentService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @Tag(name = "评论管理")
 @RestController
-@RequestMapping("/api/v1/comments")
+@RequestMapping("/v1/comments")
 public class CommentController {
 
     @Autowired
@@ -52,8 +51,11 @@ public class CommentController {
     @PostMapping
     public Result<Long> saveComment(@Valid @RequestBody CommentSaveDTO saveDTO,
                                    HttpServletRequest request) {
-        // 临时使用固定用户ID，后续接入认证后获取当前用户
-        Long userId = 1L;
+        // 从请求中获取当前用户ID
+        Long userId = (Long) request.getAttribute("currentUserId");
+        if (userId == null) {
+            throw new RuntimeException("用户未登录");
+        }
         String ipAddress = getClientIpAddress(request);
 
         Long commentId = commentService.saveComment(saveDTO, userId, ipAddress);
@@ -83,6 +85,17 @@ public class CommentController {
             @Parameter(description = "评论ID") @PathVariable Long id) {
         commentService.likeComment(id);
         return Result.ok();
+    }
+    
+    @Operation(summary = "批量更新所有文章评论数")
+    @PostMapping("/update-all-comment-count")
+    public Result<String> updateAllArticleCommentCount() {
+        try {
+            commentService.updateAllArticleCommentCount();
+            return Result.ok("所有文章评论数更新完成");
+        } catch (Exception e) {
+            return Result.failed("更新失败: " + e.getMessage());
+        }
     }
 
     /**

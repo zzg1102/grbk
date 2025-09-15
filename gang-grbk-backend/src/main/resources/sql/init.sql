@@ -162,6 +162,24 @@ CREATE TABLE `tb_file` (
     CONSTRAINT `fk_file_upload_user` FOREIGN KEY (`upload_by`) REFERENCES `tb_user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='文件表';
 
+-- 9. 用户点赞记录表
+CREATE TABLE `tb_user_like` (
+    `id` BIGINT NOT NULL COMMENT '主键ID',
+    `user_id` BIGINT NOT NULL COMMENT '用户ID',
+    `target_id` BIGINT NOT NULL COMMENT '目标ID（文章ID或评论ID）',
+    `target_type` TINYINT NOT NULL COMMENT '目标类型：1-文章，2-评论',
+    `status` TINYINT DEFAULT 1 COMMENT '状态：0-取消点赞，1-点赞',
+    `create_by` BIGINT COMMENT '创建人',
+    `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    `update_by` BIGINT COMMENT '更新人',
+    `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    `delete_flag` TINYINT DEFAULT 0 COMMENT '删除标志：0-未删除，1-已删除',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_user_target` (`user_id`, `target_id`, `target_type`),
+    KEY `idx_target` (`target_id`, `target_type`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户点赞记录表';
+
 -- 插入初始数据
 
 -- 插入管理员用户

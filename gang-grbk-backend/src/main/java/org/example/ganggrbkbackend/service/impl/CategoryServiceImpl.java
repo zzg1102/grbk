@@ -7,8 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.example.ganggrbkbackend.common.exception.BusinessException;
 import org.example.ganggrbkbackend.domain.dto.CategorySaveDTO;
 import org.example.ganggrbkbackend.domain.entity.Category;
+import org.example.ganggrbkbackend.domain.entity.Article;
 import org.example.ganggrbkbackend.domain.vo.CategoryVO;
 import org.example.ganggrbkbackend.mapper.CategoryMapper;
+import org.example.ganggrbkbackend.mapper.ArticleMapper;
 import org.example.ganggrbkbackend.service.CategoryService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> implements CategoryService {
 
     private final CategoryMapper categoryMapper;
+    private final ArticleMapper articleMapper;
 
     @Override
     @Cacheable(value = "categories", key = "'all'")
@@ -35,8 +38,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
                 .map(category -> {
                     CategoryVO vo = new CategoryVO();
                     BeanUtil.copyProperties(category, vo);
-                    // TODO: 查询分类下的文章数量
-                    vo.setArticleCount(0);
+                    
+                    // 查询分类下已发布的文章数量
+                    LambdaQueryWrapper<Article> articleWrapper = new LambdaQueryWrapper<>();
+                    articleWrapper.eq(Article::getCategoryId, category.getId())
+                                 .eq(Article::getStatus, 1); // 1表示已发布
+                    int articleCount = Math.toIntExact(articleMapper.selectCount(articleWrapper));
+                    vo.setArticleCount(articleCount);
+                    
                     return vo;
                 })
                 .collect(Collectors.toList());
@@ -52,8 +61,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
 
         CategoryVO vo = new CategoryVO();
         BeanUtil.copyProperties(category, vo);
-        // TODO: 查询分类下的文章数量
-        vo.setArticleCount(0);
+        
+        // 查询分类下已发布的文章数量
+        LambdaQueryWrapper<Article> articleWrapper = new LambdaQueryWrapper<>();
+        articleWrapper.eq(Article::getCategoryId, category.getId())
+                     .eq(Article::getStatus, 1); // 1表示已发布
+        int articleCount = Math.toIntExact(articleMapper.selectCount(articleWrapper));
+        vo.setArticleCount(articleCount);
+        
         return vo;
     }
 
@@ -135,10 +150,34 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
                 .map(category -> {
                     CategoryVO vo = new CategoryVO();
                     BeanUtil.copyProperties(category, vo);
-                    // TODO: 查询分类下的文章数量
-                    vo.setArticleCount(0);
+                    
+                    // 查询分类下已发布的文章数量
+                    LambdaQueryWrapper<Article> articleWrapper = new LambdaQueryWrapper<>();
+                    articleWrapper.eq(Article::getCategoryId, category.getId())
+                                 .eq(Article::getStatus, 1); // 1表示已发布
+                    int articleCount = Math.toIntExact(articleMapper.selectCount(articleWrapper));
+                    vo.setArticleCount(articleCount);
+                    
                     return vo;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    @CacheEvict(value = "categories", allEntries = true)
+    public void incrementViewCount(Long categoryId) {
+        if (categoryId == null) {
+            throw new BusinessException("分类ID不能为空");
+        }
+
+        Category category = this.getById(categoryId);
+        if (category == null) {
+            throw new BusinessException("分类不存在");
+        }
+
+        // 增加浏览量
+        category.setViewCount((category.getViewCount() == null ? 0 : category.getViewCount()) + 1);
+        this.updateById(category);
     }
 }

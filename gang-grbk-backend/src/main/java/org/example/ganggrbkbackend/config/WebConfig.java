@@ -1,7 +1,5 @@
 package org.example.ganggrbkbackend.config;
 
-import lombok.RequiredArgsConstructor;
-import org.example.ganggrbkbackend.interceptor.JwtInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
@@ -20,28 +18,11 @@ import java.util.Arrays;
  * @author Gang
  */
 @Configuration
-@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
-
-    private final JwtInterceptor jwtInterceptor;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(jwtInterceptor)
-                .addPathPatterns("/api/**")
-                .excludePathPatterns(
-                        "/api/auth/login",
-                        "/api/auth/refresh",
-                        "/api/articles/list",
-                        "/api/articles/*/detail",
-                        "/api/articles/hot",
-                        "/api/articles/latest",
-                        "/doc.html",
-                        "/swagger-ui/**",
-                        "/v3/api-docs/**",
-                        "/swagger-resources/**",
-                        "/webjars/**"
-                );
+        // JWT认证现在通过过滤器处理，不再需要拦截器
     }
 
     @Override

@@ -15,7 +15,7 @@ import java.util.Map;
 @Component
 public class JwtUtil {
 
-    @Value("${jwt.secret:gang-grbk-blog-jwt-secret-key-2024}")
+    @Value("${jwt.secret:gang-grbk-blog-jwt-secret-key-2024-super-secure-key-with-enough-length-for-hs512-algorithm-security-requirements-and-more-bits}")
     private String secret;
 
     @Value("${jwt.expiration:86400}")

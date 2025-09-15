@@ -17,12 +17,44 @@
           <button class="btn btn-ghost btn-sm" @click="toggleTheme">
             <el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
           </button>
-          <router-link to="/auth/login" class="btn btn-ghost btn-sm">
-            登录
-          </router-link>
-          <router-link to="/auth/register" class="btn btn-primary btn-sm">
-            注册
-          </router-link>
+
+          <!-- 未登录状态 -->
+          <template v-if="!isLoggedIn">
+            <router-link to="/auth/login" class="btn btn-ghost btn-sm">
+              登录
+            </router-link>
+            <router-link to="/auth/register" class="btn btn-primary btn-sm">
+              注册
+            </router-link>
+          </template>
+
+          <!-- 已登录状态 -->
+          <template v-else>
+            <div class="user-menu">
+              <el-dropdown @command="handleUserAction" placement="bottom-end" trigger="click">
+                <div class="user-avatar">
+                  <el-icon><User /></el-icon>
+                </div>
+                <template #dropdown>
+                  <div class="custom-dropdown">
+                    <div class="dropdown-item" @click="handleUserAction('profile')">
+                      <el-icon><User /></el-icon>
+                      <span>个人资料</span>
+                    </div>
+                    <div v-if="isAdmin" class="dropdown-item" @click="handleUserAction('admin')">
+                      <el-icon><Setting /></el-icon>
+                      <span>管理后台</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item logout-item" @click="handleUserAction('logout')">
+                      <el-icon><SwitchButton /></el-icon>
+                      <span>退出登录</span>
+                    </div>
+                  </div>
+                </template>
+              </el-dropdown>
+            </div>
+          </template>
         </div>
       </div>
     </header>
@@ -188,7 +220,7 @@ import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
-  Loading, Document, View, Sunny, Moon
+  Loading, Document, View, Sunny, Moon, User, Setting, SwitchButton
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 
@@ -199,6 +231,10 @@ const loading = ref(false)
 const categories = ref([])
 const recentArticles = ref([])
 const isDark = ref(false)
+
+// 登录状态管理
+const isLoggedIn = ref(false)
+const userInfo = ref(null)
 
 const categoryStats = reactive({
   total: 0,
@@ -226,7 +262,8 @@ const loadCategories = async () => {
       // 计算统计数据
       categoryStats.total = categories.value.length
       categoryStats.articles = categories.value.reduce((sum, cat) => sum + (cat.articleCount || 0), 0)
-      categoryStats.views = categories.value.reduce((sum, cat) => sum + (cat.viewCount || 0), 0)
+      // 移除假的浏览量数据，使用真实的文章总数作为活跃度指标
+      categoryStats.views = categoryStats.articles
     }
   } catch (error) {
     console.error('加载分类失败:', error)
@@ -238,7 +275,7 @@ const loadCategories = async () => {
 
 const loadRecentArticles = async () => {
   try {
-    const response = await axios.get('/api/v1/articles/recent?limit=6')
+    const response = await axios.get('/api/v1/articles/latest?limit=6')
 
     if (response.data.code === 200) {
       recentArticles.value = response.data.data || []
@@ -249,10 +286,8 @@ const loadRecentArticles = async () => {
 }
 
 const viewCategory = (categoryId) => {
-  router.push({
-    path: '/articles',
-    query: { categoryId }
-  })
+  console.log('点击分类，ID:', categoryId)
+  router.push(`/category/${categoryId}`)
 }
 
 const getCategoryIcon = (categoryName) => {
@@ -285,6 +320,75 @@ const getCategoryIcon = (categoryName) => {
 const toggleTheme = () => {
   isDark.value = !isDark.value
   document.documentElement.classList.toggle('dark', isDark.value)
+  localStorage.setItem('theme', isDark.value ? 'dark' : 'light')
+}
+
+// 检查登录状态
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('auth_token')
+  const userInfoStr = localStorage.getItem('user_info')
+
+  if (token && userInfoStr) {
+    try {
+      const userData = JSON.parse(userInfoStr)
+      isLoggedIn.value = true
+      userInfo.value = userData
+    } catch (error) {
+      console.error('解析用户信息失败:', error)
+      isLoggedIn.value = false
+      userInfo.value = null
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_info')
+    }
+  } else {
+    isLoggedIn.value = false
+    userInfo.value = null
+  }
+}
+
+// 退出登录处理
+const handleUserAction = (command) => {
+  switch (command) {
+    case 'profile':
+      // 跳转到个人资料页面
+      ElMessage.info('个人资料功能开发中')
+      break
+    case 'admin':
+      router.push('/admin')
+      break
+    case 'logout':
+      handleLogout()
+      break
+  }
+}
+
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      await axios.post('/api/v1/auth/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+  } catch (error) {
+    console.error('退出登录失败:', error)
+  } finally {
+    // 清除本地存储
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_info')
+    localStorage.removeItem('remember_username')
+
+    // 更新状态
+    isLoggedIn.value = false
+    userInfo.value = null
+
+    ElMessage.success('退出登录成功')
+
+    // 刷新页面或重定向到首页
+    router.push('/')
+  }
 }
 
 const formatNumber = (num) => {
@@ -308,14 +412,57 @@ onMounted(() => {
   loadCategories()
   loadRecentArticles()
 
-  // 检查主题偏好
+  // 检查登录状态
+  checkLoginStatus()
+
+  // 初始化主题
+  const savedTheme = localStorage.getItem('theme')
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-  isDark.value = prefersDark
+
+  isDark.value = savedTheme === 'dark' || (!savedTheme && prefersDark)
   document.documentElement.classList.toggle('dark', isDark.value)
 })
 </script>
 
 <style scoped>
+/* 导航栏样式覆盖 */
+.navbar-container {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 var(--space-4) !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
+@media (max-width: 768px) {
+  .navbar-container {
+    padding: 0 var(--space-3) !important;
+  }
+}
+
+.navbar-brand {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--primary-600) !important;
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.navbar-brand:hover {
+  color: var(--primary-700) !important;
+  transform: scale(1.02);
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
 .category-layout {
   min-height: 100vh;
   display: flex;
@@ -647,6 +794,95 @@ onMounted(() => {
   color: var(--text-secondary);
   margin: 0;
 }
+
+/* 用户菜单样式 */
+.user-menu .user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-100);
+  color: var(--primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.user-menu .user-avatar:hover {
+  background: var(--primary-200);
+}
+
+/* 自定义下拉菜单样式 */
+.custom-dropdown {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-primary);
+  padding: var(--space-1);
+  min-width: 120px;
+  width: max-content;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .custom-dropdown {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-secondary);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  margin: 2px;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-secondary);
+  color: var(--primary-600);
+}
+
+.dropdown-item .el-icon {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.dropdown-item:hover .el-icon {
+  color: var(--primary-600);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-primary);
+  margin: var(--space-1) var(--space-2);
+}
+
+.logout-item {
+  color: var(--error);
+}
+
+.logout-item:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.logout-item .el-icon {
+  color: var(--error);
+}
+
+.logout-item:hover .el-icon {
+  color: var(--error);
+}
+
 
 /* 响应式设计 */
 @media (max-width: 768px) {

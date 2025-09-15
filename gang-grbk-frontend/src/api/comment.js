@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_BASE = '/api/comment'
+const API_BASE = '/v1/comments'
 
 export const commentApi = {
   // 根据文章ID获取评论列表

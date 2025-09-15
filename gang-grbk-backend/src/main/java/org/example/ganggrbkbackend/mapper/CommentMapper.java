@@ -14,17 +14,17 @@ public interface CommentMapper extends BaseMapper<Comment> {
     @Select("SELECT c.*, u.username, u.nickname, u.avatar " +
             "FROM tb_comment c " +
             "LEFT JOIN tb_user u ON c.user_id = u.id " +
-            "WHERE c.article_id = #{articleId} AND c.parent_id IS NULL AND c.deleted = 0 " +
+            "WHERE c.article_id = #{articleId} AND c.parent_id IS NULL AND c.delete_flag = 0 " +
             "ORDER BY c.create_time DESC")
     List<CommentVO> selectCommentsByArticleId(Long articleId);
 
     @Select("SELECT c.*, u.username, u.nickname, u.avatar " +
             "FROM tb_comment c " +
             "LEFT JOIN tb_user u ON c.user_id = u.id " +
-            "WHERE c.parent_id = #{parentId} AND c.deleted = 0 " +
+            "WHERE c.parent_id = #{parentId} AND c.delete_flag = 0 " +
             "ORDER BY c.create_time ASC")
     List<CommentVO> selectRepliesByParentId(Long parentId);
 
-    @Select("SELECT COUNT(*) FROM tb_comment WHERE article_id = #{articleId} AND deleted = 0")
+    @Select("SELECT COUNT(*) FROM tb_comment WHERE article_id = #{articleId} AND delete_flag = 0")
     Integer countCommentsByArticleId(Long articleId);
 }

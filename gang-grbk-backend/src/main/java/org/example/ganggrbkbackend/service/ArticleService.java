@@ -9,6 +9,7 @@ import org.example.ganggrbkbackend.domain.vo.ArticleDetailVO;
 import org.example.ganggrbkbackend.domain.vo.ArticleListVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文章服务接口
@@ -26,6 +27,11 @@ public interface ArticleService extends IService<Article> {
      * 根据ID查询文章详情
      */
     ArticleDetailVO getArticleDetail(Long id);
+
+    /**
+     * 根据ID查询文章详情（包含用户点赞状态）
+     */
+    ArticleDetailVO getArticleDetail(Long id, Long userId);
 
     /**
      * 保存文章
@@ -76,4 +82,14 @@ public interface ArticleService extends IService<Article> {
      * 增加文章点赞数
      */
     void incrementLikeCount(Long id);
+
+    /**
+     * 获取文章导航（上一篇/下一篇）
+     */
+    Map<String, Object> getArticleNavigation(Long id);
+
+    /**
+     * 获取相关文章推荐
+     */
+    List<ArticleListVO> getRelatedArticles(Long id, Integer limit);
 }

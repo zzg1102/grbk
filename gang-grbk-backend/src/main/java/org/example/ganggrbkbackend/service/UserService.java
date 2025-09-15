@@ -11,6 +11,8 @@ public interface UserService {
 
     UserLoginVO login(UserLoginDTO loginDTO);
 
+    UserLoginVO register(UserSaveDTO registerDTO);
+
     void logout(String token);
 
     String refreshToken(String token);

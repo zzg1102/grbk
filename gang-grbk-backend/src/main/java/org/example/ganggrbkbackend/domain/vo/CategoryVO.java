@@ -19,5 +19,7 @@ public class CategoryVO {
 
     private Integer articleCount;
 
+    private Integer viewCount;
+
     private LocalDateTime createTime;
 }

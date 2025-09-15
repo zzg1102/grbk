@@ -69,4 +69,11 @@ public class CategoryController {
         categoryService.deleteCategory(id);
         return Result.ok();
     }
+
+    @Operation(summary = "增加分类浏览量")
+    @PostMapping("/{id}/view")
+    public Result<Void> incrementCategoryView(@PathVariable Long id) {
+        categoryService.incrementViewCount(id);
+        return Result.ok();
+    }
 }

@@ -60,6 +60,11 @@ public class ArticleDetailVO {
     private Integer likeCount;
 
     /**
+     * 当前用户是否已点赞
+     */
+    private Boolean isLiked;
+
+    /**
      * 评论数
      */
     private Integer commentCount;

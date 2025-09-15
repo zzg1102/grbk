@@ -8,6 +8,6 @@ import org.example.ganggrbkbackend.domain.entity.User;
 @Mapper
 public interface UserMapper extends BaseMapper<User> {
 
-    @Select("SELECT * FROM tb_user WHERE username = #{username} AND deleted = 0")
+    @Select("SELECT * FROM tb_user WHERE username = #{username} AND delete_flag = 0")
     User selectByUsername(String username);
 }

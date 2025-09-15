@@ -298,8 +298,8 @@
   }
 
   &-container {
-    max-width: var(--container-xl);
-    margin: 0 auto;
+    max-width: none;
+    margin: 0;
     padding: 0 var(--space-4);
     display: flex;
     align-items: center;
@@ -314,11 +314,14 @@
   &-brand {
     font-size: var(--text-xl);
     font-weight: var(--font-bold);
-    color: var(--text-primary);
+    color: var(--primary-600);
     text-decoration: none;
+    transition: all var(--duration-fast) var(--ease-out);
+    flex-shrink: 0;
 
     &:hover {
-      color: var(--primary-500);
+      color: var(--primary-700);
+      transform: scale(1.02);
     }
   }
 
@@ -351,6 +354,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
+    flex-shrink: 0;
   }
 }
 

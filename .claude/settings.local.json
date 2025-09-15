@@ -14,7 +14,10 @@
       "Bash(findstr:*)",
       "Bash(taskkill:*)",
       "Bash(mysql:*)",
-      "Bash(tasklist)"
+      "Bash(tasklist)",
+      "Bash(/bashes)",
+      "Bash(tasklist:*)",
+      "Bash(cmd /c:*)"
     ],
     "deny": [],
     "ask": []

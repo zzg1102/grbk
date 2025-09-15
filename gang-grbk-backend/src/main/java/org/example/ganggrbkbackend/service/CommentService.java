@@ -22,4 +22,14 @@ public interface CommentService {
     void reviewComment(Long id, Integer isReview);
 
     void likeComment(Long id);
+    
+    /**
+     * 批量更新所有文章的评论数量
+     */
+    void updateAllArticleCommentCount();
+    
+    /**
+     * 更新指定文章的评论数量
+     */
+    void updateArticleCommentCount(Long articleId);
 }

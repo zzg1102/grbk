@@ -6,13 +6,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.example.ganggrbkbackend.common.utils.Result;
 import org.example.ganggrbkbackend.domain.dto.UserLoginDTO;
+import org.example.ganggrbkbackend.domain.dto.UserSaveDTO;
 import org.example.ganggrbkbackend.domain.vo.UserLoginVO;
 import org.example.ganggrbkbackend.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "用户认证", description = "用户登录、退出等认证相关接口")
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
@@ -22,6 +23,13 @@ public class AuthController {
     @PostMapping("/login")
     public Result<UserLoginVO> login(@Valid @RequestBody UserLoginDTO loginDTO) {
         UserLoginVO loginVO = userService.login(loginDTO);
+        return Result.ok(loginVO);
+    }
+
+    @Operation(summary = "用户注册")
+    @PostMapping("/register")
+    public Result<UserLoginVO> register(@Valid @RequestBody UserSaveDTO registerDTO) {
+        UserLoginVO loginVO = userService.register(registerDTO);
         return Result.ok(loginVO);
     }
 
@@ -39,5 +47,11 @@ public class AuthController {
         String token = authorization.replace("Bearer ", "");
         String newToken = userService.refreshToken(token);
         return Result.ok(newToken);
+    }
+
+    @Operation(summary = "测试端点")
+    @GetMapping("/test")
+    public Result<String> test() {
+        return Result.ok("auth controller is working");
     }
 }

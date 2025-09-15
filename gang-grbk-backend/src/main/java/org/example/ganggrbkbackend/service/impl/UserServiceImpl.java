@@ -74,8 +74,64 @@ public class UserServiceImpl implements UserService {
         BeanUtil.copyProperties(user, loginVO);
         loginVO.setToken(token);
         loginVO.setUserId(user.getId());
+        loginVO.setUserType(user.getUserType());
 
         log.info("用户登录成功: username={}, userId={}", user.getUsername(), user.getId());
+        return loginVO;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public UserLoginVO register(UserSaveDTO registerDTO) {
+        if (StrUtil.isBlank(registerDTO.getUsername()) || StrUtil.isBlank(registerDTO.getPassword())) {
+            throw new BusinessException(ResultCodeEnum.PARAM_ERROR);
+        }
+
+        // 检查用户名是否已存在
+        User existUser = userMapper.selectByUsername(registerDTO.getUsername());
+        if (existUser != null) {
+            throw new BusinessException("用户名已存在");
+        }
+
+        // 检查邮箱是否已存在
+        if (StrUtil.isNotBlank(registerDTO.getEmail())) {
+            LambdaQueryWrapper<User> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(User::getEmail, registerDTO.getEmail());
+            if (userMapper.selectCount(wrapper) > 0) {
+                throw new BusinessException("邮箱已被注册");
+            }
+        }
+
+        // 创建新用户
+        User user = new User();
+        BeanUtil.copyProperties(registerDTO, user);
+
+        // 加密密码
+        user.setPassword(BCrypt.hashpw(registerDTO.getPassword(), BCrypt.gensalt()));
+
+        // 设置默认值
+        user.setStatus(1); // 默认启用
+        user.setUserType(0); // 默认为普通用户
+        user.setAvatar("https://img.yzcdn.cn/vant/cat.jpeg"); // 默认头像
+
+        // 保存用户
+        userMapper.insert(user);
+
+        // 生成JWT token并直接登录
+        String token = jwtUtil.generateToken(user.getId(), user.getUsername());
+
+        // 缓存用户信息到Redis
+        String userKey = LOGIN_USER_KEY_PREFIX + user.getId();
+        redisTemplate.opsForValue().set(userKey, user, 24, TimeUnit.HOURS);
+
+        // 构造返回结果
+        UserLoginVO loginVO = new UserLoginVO();
+        BeanUtil.copyProperties(user, loginVO);
+        loginVO.setToken(token);
+        loginVO.setUserId(user.getId());
+        loginVO.setUserType(user.getUserType());
+
+        log.info("用户注册成功: username={}, userId={}", user.getUsername(), user.getId());
         return loginVO;
     }
 
@@ -188,7 +244,7 @@ public class UserServiceImpl implements UserService {
 
         // 加密密码
         if (StrUtil.isNotBlank(saveDTO.getPassword())) {
-            user.setPassword(BCrypt.hashpw(saveDTO.getPassword()));
+            user.setPassword(BCrypt.hashpw(saveDTO.getPassword(), BCrypt.gensalt()));
         }
 
         // 设置默认值
@@ -238,7 +294,7 @@ public class UserServiceImpl implements UserService {
 
         // 如果有新密码，进行加密
         if (StrUtil.isNotBlank(saveDTO.getPassword())) {
-            user.setPassword(BCrypt.hashpw(saveDTO.getPassword()));
+            user.setPassword(BCrypt.hashpw(saveDTO.getPassword(), BCrypt.gensalt()));
         } else {
             user.setPassword(null); // 不更新密码
         }
@@ -299,7 +355,7 @@ public class UserServiceImpl implements UserService {
         String defaultPassword = "123456";
         User updateUser = new User();
         updateUser.setId(id);
-        updateUser.setPassword(BCrypt.hashpw(defaultPassword));
+        updateUser.setPassword(BCrypt.hashpw(defaultPassword, BCrypt.gensalt()));
         userMapper.updateById(updateUser);
 
         // 清除用户缓存，强制重新登录

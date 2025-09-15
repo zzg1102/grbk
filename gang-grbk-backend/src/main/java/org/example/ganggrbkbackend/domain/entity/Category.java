@@ -44,4 +44,10 @@ public class Category extends BaseEntity {
      */
     @TableField("status")
     private Integer status;
+
+    /**
+     * 分类浏览量
+     */
+    @TableField("view_count")
+    private Integer viewCount;
 }

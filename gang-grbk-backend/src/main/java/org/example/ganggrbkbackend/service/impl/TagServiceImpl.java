@@ -8,6 +8,7 @@ import org.example.ganggrbkbackend.common.exception.BusinessException;
 import org.example.ganggrbkbackend.domain.dto.TagSaveDTO;
 import org.example.ganggrbkbackend.domain.entity.Tag;
 import org.example.ganggrbkbackend.domain.vo.TagVO;
+import org.example.ganggrbkbackend.mapper.ArticleTagMapper;
 import org.example.ganggrbkbackend.mapper.TagMapper;
 import org.example.ganggrbkbackend.service.TagService;
 import org.springframework.cache.annotation.CacheEvict;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagService {
 
     private final TagMapper tagMapper;
+    private final ArticleTagMapper articleTagMapper;
 
     @Override
     @Cacheable(value = "tags", key = "'all'")
@@ -34,8 +36,9 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
                 .map(tag -> {
                     TagVO vo = new TagVO();
                     BeanUtil.copyProperties(tag, vo);
-                    // TODO: 查询标签下的文章数量
-                    vo.setArticleCount(0);
+                    // 查询标签下的文章数量
+                    List<Long> articleIds = articleTagMapper.selectArticleIdsByTagId(tag.getId());
+                    vo.setArticleCount(articleIds != null ? articleIds.size() : 0);
                     return vo;
                 })
                 .collect(Collectors.toList());
@@ -51,8 +54,9 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
 
         TagVO vo = new TagVO();
         BeanUtil.copyProperties(tag, vo);
-        // TODO: 查询标签下的文章数量
-        vo.setArticleCount(0);
+        // 查询标签下的文章数量
+        List<Long> articleIds = articleTagMapper.selectArticleIdsByTagId(tag.getId());
+        vo.setArticleCount(articleIds != null ? articleIds.size() : 0);
         return vo;
     }
 
@@ -129,8 +133,9 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
                 .map(tag -> {
                     TagVO vo = new TagVO();
                     BeanUtil.copyProperties(tag, vo);
-                    // TODO: 查询标签下的文章数量
-                    vo.setArticleCount(0);
+                    // 查询标签下的文章数量
+                    List<Long> articleIds = articleTagMapper.selectArticleIdsByTagId(tag.getId());
+                    vo.setArticleCount(articleIds != null ? articleIds.size() : 0);
                     return vo;
                 })
                 .collect(Collectors.toList());
@@ -143,19 +148,21 @@ public class TagServiceImpl extends ServiceImpl<TagMapper, Tag> implements TagSe
             limit = 10;
         }
 
-        // TODO: 按照文章数量排序获取热门标签，暂时按创建时间排序
-        List<Tag> tags = this.list(new LambdaQueryWrapper<Tag>()
-                .orderByDesc(Tag::getCreateTime)
-                .last("LIMIT " + limit));
+        // 获取所有标签并计算文章数量，然后按文章数量排序
+        List<Tag> allTags = this.list(new LambdaQueryWrapper<Tag>()
+                .orderByDesc(Tag::getCreateTime));
 
-        return tags.stream()
+        return allTags.stream()
                 .map(tag -> {
                     TagVO vo = new TagVO();
                     BeanUtil.copyProperties(tag, vo);
-                    // TODO: 查询标签下的文章数量
-                    vo.setArticleCount(0);
+                    // 查询标签下的文章数量
+                    List<Long> articleIds = articleTagMapper.selectArticleIdsByTagId(tag.getId());
+                    vo.setArticleCount(articleIds != null ? articleIds.size() : 0);
                     return vo;
                 })
+                .sorted((a, b) -> Integer.compare(b.getArticleCount(), a.getArticleCount())) // 按文章数量倒序
+                .limit(limit)
                 .collect(Collectors.toList());
     }
 }

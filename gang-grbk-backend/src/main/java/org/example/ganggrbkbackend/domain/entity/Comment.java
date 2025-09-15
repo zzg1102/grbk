@@ -1,9 +1,12 @@
 package org.example.ganggrbkbackend.domain.entity;
 
+import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import java.time.LocalDateTime;
 
 /**
  * 评论实体
@@ -11,9 +14,14 @@ import lombok.EqualsAndHashCode;
  * @author Gang
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
 @TableName("tb_comment")
-public class Comment extends BaseEntity {
+public class Comment {
+
+    /**
+     * 主键ID
+     */
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
+    private Long id;
 
     /**
      * 文章ID
@@ -58,10 +66,10 @@ public class Comment extends BaseEntity {
     private String userAgent;
 
     /**
-     * 是否审核通过：0-待审核，1-通过，2-驳回
+     * 状态：0-待审核，1-已通过，2-已拒绝
      */
-    @TableField("is_review")
-    private Integer isReview;
+    @TableField("status")
+    private Integer status;
 
     /**
      * 点赞数
@@ -70,8 +78,20 @@ public class Comment extends BaseEntity {
     private Integer likeCount;
 
     /**
-     * 是否删除：0-未删除，1-已删除
+     * 删除标志：0-未删除，1-已删除
      */
-    @TableField("deleted")
-    private Integer deleted;
+    @TableField("delete_flag")
+    private Integer deleteFlag;
+
+    /**
+     * 创建时间
+     */
+    @TableField("create_time")
+    private LocalDateTime createTime;
+
+    /**
+     * 更新时间
+     */
+    @TableField("update_time")
+    private LocalDateTime updateTime;
 }

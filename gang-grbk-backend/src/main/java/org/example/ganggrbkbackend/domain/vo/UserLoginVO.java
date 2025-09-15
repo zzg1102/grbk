@@ -16,4 +16,6 @@ public class UserLoginVO {
     private String email;
 
     private Long userId;
+
+    private Integer userType;
 }

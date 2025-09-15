@@ -209,11 +209,11 @@ const handleLogin = async () => {
     })
 
     if (response.data.code === 200) {
-      const { token, userInfo } = response.data.data
+      const loginData = response.data.data
 
-      // 存储token
-      localStorage.setItem('auth_token', token)
-      localStorage.setItem('user_info', JSON.stringify(userInfo))
+      // 存储token和用户信息
+      localStorage.setItem('auth_token', loginData.token)
+      localStorage.setItem('user_info', JSON.stringify(loginData))
 
       // 记住我功能
       if (loginForm.rememberMe) {
@@ -224,9 +224,27 @@ const handleLogin = async () => {
 
       ElMessage.success('登录成功！')
 
-      // 跳转到管理后台或返回原页面
-      const redirect = router.currentRoute.value.query.redirect || '/admin'
-      router.push(redirect)
+      // 根据用户类型进行重定向
+      let redirectPath = '/'
+
+      // 检查是否有预设的redirect参数
+      const queryRedirect = router.currentRoute.value.query.redirect
+
+      if (queryRedirect) {
+        // 如果有预设redirect，使用它
+        redirectPath = queryRedirect
+      } else {
+        // 根据用户角色决定默认跳转页面
+        if (loginData.userType === 1) {
+          // 管理员用户跳转到管理后台
+          redirectPath = '/admin'
+        } else {
+          // 普通用户跳转到首页
+          redirectPath = '/'
+        }
+      }
+
+      router.push(redirectPath)
     } else {
       ElMessage.error(response.data.message || '登录失败')
     }
@@ -250,7 +268,7 @@ onMounted(() => {
   // 检查是否已经登录
   const token = localStorage.getItem('auth_token')
   if (token) {
-    router.push('/admin')
+    router.push('/')
   }
 })
 </script>

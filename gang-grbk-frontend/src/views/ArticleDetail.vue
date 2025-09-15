@@ -1,28 +1,54 @@
 <template>
-  <div class="layout article-detail-layout">
-    <!-- 导航栏 -->
-    <header class="navbar layout-header">
-      <div class="navbar-container">
-        <router-link to="/" class="navbar-brand gradient-text">Gang's Blog</router-link>
+  <div class="article-detail-layout">
+    <!-- 简约导航栏 -->
+    <header class="article-header">
+      <div class="header-container">
+        <div class="header-left">
+          <router-link to="/" class="back-link">
+            <el-icon><ArrowLeft /></el-icon>
+            <span>Gang's Blog</span>
+          </router-link>
+        </div>
 
-        <nav class="navbar-nav">
-          <router-link to="/" exact-active-class="active">首页</router-link>
-          <router-link to="/articles" exact-active-class="active">文章</router-link>
-          <router-link to="/categories" exact-active-class="active">分类</router-link>
-          <router-link to="/tags" exact-active-class="active">标签</router-link>
-          <router-link to="/about" exact-active-class="active">关于</router-link>
-        </nav>
-
-        <div class="navbar-actions">
-          <button class="btn btn-ghost btn-sm" @click="toggleTheme">
+        <div class="header-actions">
+          <button class="action-btn" @click="toggleTheme" title="切换主题">
             <el-icon><Sunny v-if="isDark" /><Moon v-else /></el-icon>
           </button>
-          <router-link to="/auth/login" class="btn btn-ghost btn-sm">
-            登录
-          </router-link>
-          <router-link to="/auth/register" class="btn btn-primary btn-sm">
-            注册
-          </router-link>
+
+          <!-- 未登录状态 -->
+          <template v-if="!isLoggedIn">
+            <router-link to="/auth/login" class="action-btn">
+              登录
+            </router-link>
+          </template>
+
+          <!-- 已登录状态 -->
+          <template v-else>
+            <div class="user-menu">
+              <el-dropdown @command="handleUserAction" placement="bottom-end" trigger="click">
+                <div class="user-avatar">
+                  <el-icon><User /></el-icon>
+                </div>
+                <template #dropdown>
+                  <div class="custom-dropdown">
+                    <div class="dropdown-item" @click="handleUserAction('profile')">
+                      <el-icon><User /></el-icon>
+                      <span>个人资料</span>
+                    </div>
+                    <div v-if="isAdmin" class="dropdown-item" @click="handleUserAction('admin')">
+                      <el-icon><Setting /></el-icon>
+                      <span>管理后台</span>
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item logout-item" @click="handleUserAction('logout')">
+                      <el-icon><SwitchButton /></el-icon>
+                      <span>退出登录</span>
+                    </div>
+                  </div>
+                </template>
+              </el-dropdown>
+            </div>
+          </template>
         </div>
       </div>
     </header>
@@ -52,71 +78,91 @@
 
             <!-- 文章内容 -->
             <div v-else-if="article.id" class="article-container">
-              <!-- 文章头部 -->
-              <header class="article-header">
-                <h1 class="article-title">{{ article.title }}</h1>
-
-                <div class="article-meta">
-                  <div class="meta-primary">
+              <!-- 文章封面 -->
+              <div class="article-hero" v-if="article.coverImage">
+                <div class="hero-image">
+                  <img
+                    :src="article.coverImage"
+                    :alt="article.title"
+                    loading="lazy"
+                  />
+                  <div class="hero-overlay"></div>
+                </div>
+                <div class="hero-content">
+                  <div class="hero-meta">
+                    <div class="article-category" v-if="article.categoryName">
+                      <el-icon><Document /></el-icon>
+                      <span>{{ article.categoryName }}</span>
+                    </div>
+                    <div class="reading-time">
+                      <el-icon><Clock /></el-icon>
+                      <span>{{ readTime }}分钟阅读</span>
+                    </div>
+                  </div>
+                  <h1 class="hero-title">{{ article.title }}</h1>
+                  <div class="hero-author">
+                    <img
+                      :src="article.authorAvatar || '/api/placeholder/40/40'"
+                      :alt="article.authorName"
+                      class="author-avatar"
+                    />
                     <div class="author-info">
-                      <img
-                        :src="article.authorAvatar || '/api/placeholder/32/32'"
-                        :alt="article.authorName"
-                        class="author-avatar"
-                      />
-                      <div class="author-details">
-                        <span class="author-name">{{ article.authorName }}</span>
+                      <span class="author-name">{{ article.authorName }}</span>
+                      <div class="author-meta">
                         <span class="publish-date">{{ formatDate(article.createTime) }}</span>
+                        <span class="meta-separator">·</span>
+                        <span class="article-stats">
+                          <el-icon><View /></el-icon>
+                          {{ article.viewCount || 0 }}
+                        </span>
                       </div>
                     </div>
                   </div>
-
-                  <div class="meta-secondary">
-                    <div class="article-stats">
-                      <span class="stat-item">
-                        <el-icon><View /></el-icon>
-                        {{ article.viewCount || 0 }} 浏览
-                      </span>
-                      <span class="stat-item">
-                        <el-icon><Star /></el-icon>
-                        {{ article.likeCount || 0 }} 点赞
-                      </span>
-                      <span class="stat-item">
-                        <el-icon><ChatDotRound /></el-icon>
-                        {{ article.commentCount || 0 }} 评论
-                      </span>
-                    </div>
-                  </div>
                 </div>
+              </div>
 
-                <!-- 文章分类和标签 -->
-                <div class="article-taxonomy">
-                  <div class="taxonomy-item" v-if="article.categoryName">
-                    <span class="taxonomy-label">分类：</span>
-                    <span class="category-tag">{{ article.categoryName }}</span>
-                  </div>
-                  <div class="taxonomy-item" v-if="article.tags && article.tags.length">
-                    <span class="taxonomy-label">标签：</span>
-                    <div class="tag-list">
-                      <span
-                        v-for="tag in article.tags"
-                        :key="tag.id"
-                        class="tag"
-                      >
-                        {{ tag.name }}
-                      </span>
+              <!-- 无封面的文章头部 -->
+              <header v-else class="article-header-simple">
+                <div class="article-category-simple" v-if="article.categoryName">
+                  <el-icon><Document /></el-icon>
+                  <span>{{ article.categoryName }}</span>
+                </div>
+                <h1 class="article-title-simple">{{ article.title }}</h1>
+                <div class="article-meta-simple">
+                  <div class="author-section">
+                    <img
+                      :src="article.authorAvatar || '/api/placeholder/48/48'"
+                      :alt="article.authorName"
+                      class="author-avatar"
+                    />
+                    <div class="author-info">
+                      <span class="author-name">{{ article.authorName }}</span>
+                      <div class="meta-row">
+                        <span class="publish-date">{{ formatDate(article.createTime) }}</span>
+                        <span class="meta-separator">·</span>
+                        <span class="reading-time">{{ readTime }}分钟阅读</span>
+                        <span class="meta-separator">·</span>
+                        <span class="view-count">
+                          <el-icon><View /></el-icon>
+                          {{ article.viewCount || 0 }} 浏览
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </header>
 
-              <!-- 文章封面 -->
-              <div class="article-cover" v-if="article.coverImage">
-                <img
-                  :src="article.coverImage"
-                  :alt="article.title"
-                  loading="lazy"
-                />
+              <!-- 文章标签 -->
+              <div class="article-tags" v-if="article.tags && article.tags.length">
+                <div class="tags-container">
+                  <span
+                    v-for="tag in article.tags"
+                    :key="tag.id"
+                    class="article-tag"
+                  >
+                    #{{ tag.name }}
+                  </span>
+                </div>
               </div>
 
               <!-- 文章内容 -->
@@ -135,6 +181,15 @@
                   <span>{{ isLiked ? '已点赞' : '点赞' }} ({{ article.likeCount || 0 }})</span>
                 </button>
 
+                <button 
+                  class="action-btn comment-btn"
+                  :class="{ active: showComments }"
+                  @click="toggleComments"
+                >
+                  <el-icon><ChatDotRound /></el-icon>
+                  <span>评论 ({{ article.commentCount || 0 }})</span>
+                </button>
+
                 <button class="action-btn share-btn" @click="shareArticle">
                   <el-icon><Share /></el-icon>
                   <span>分享</span>
@@ -144,6 +199,25 @@
                   <el-icon><Collection /></el-icon>
                   <span>收藏</span>
                 </button>
+              </div>
+
+              <!-- 评论区域 -->
+              <div v-if="showComments" class="article-comments">
+                <div class="comments-header">
+                  <h3 class="comments-title">
+                    <el-icon><ChatDotRound /></el-icon>
+                    <span>评论区</span>
+                  </h3>
+                  <div class="comments-actions">
+                    <span class="comments-count">{{ article.commentCount || 0 }} 条评论</span>
+                    <button class="close-comments-btn" @click="toggleComments" title="收起评论">
+                      <el-icon><ArrowUp /></el-icon>
+                    </button>
+                  </div>
+                </div>
+                <div class="comments-content">
+                  <CommentList :article-id="articleId" v-if="article.id" @comment-updated="handleCommentUpdated" />
+                </div>
               </div>
 
               <!-- 上一篇/下一篇导航 -->
@@ -263,14 +337,6 @@
       </div>
     </main>
 
-    <!-- 评论区域 -->
-    <section class="comments-section">
-      <div class="container-wide">
-        <div class="comments-container">
-          <CommentList :article-id="articleId" v-if="article.id" />
-        </div>
-      </div>
-    </section>
 
     <!-- 页脚 -->
     <footer class="layout-footer">
@@ -294,7 +360,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import {
   View, Star, ChatDotRound, Loading, Share, Collection,
-  Sunny, Moon
+  Sunny, Moon, User, ArrowLeft, Setting, SwitchButton, Document, Clock, ArrowUp
 } from '@element-plus/icons-vue'
 import axios from 'axios'
 import CommentList from '@/components/CommentList.vue'
@@ -315,6 +381,25 @@ const loading = ref(false)
 const error = ref('')
 const isLiked = ref(false)
 const isDark = ref(false)
+const showShareDialog = ref(false)
+const showComments = ref(false)
+
+// 登录状态管理
+const isLoggedIn = ref(false)
+const userInfo = ref(null)
+
+// 检查是否为管理员
+const isAdmin = computed(() => {
+  return userInfo.value?.userType === 1
+})
+
+// 阅读时间计算
+const readTime = computed(() => {
+  if (!article.value?.content) return 0
+  const wordsPerMinute = 200
+  const wordCount = article.value.content.replace(/\s/g, '').length
+  return Math.ceil(wordCount / wordsPerMinute)
+})
 
 const article = reactive({
   id: null,
@@ -361,6 +446,9 @@ const loadArticle = async () => {
     if (response.data.code === 200) {
       const data = response.data.data
       Object.assign(article, data)
+      
+      // 设置用户点赞状态
+      isLiked.value = data.isLiked || false
 
       // 加载相关数据
       loadRelatedArticles()
@@ -380,6 +468,12 @@ const loadArticle = async () => {
   }
 }
 
+// 处理评论更新事件
+const handleCommentUpdated = async () => {
+  // 重新加载文章数据以更新评论数量
+  await loadArticle()
+}
+
 const loadRelatedArticles = async () => {
   try {
     const response = await axios.get(`/api/v1/articles/${articleId.value}/related`)
@@ -396,8 +490,8 @@ const loadNavigationArticles = async () => {
     const response = await axios.get(`/api/v1/articles/${articleId.value}/navigation`)
     if (response.data.code === 200) {
       const data = response.data.data
-      prevArticle.value = data.prev
-      nextArticle.value = data.next
+      prevArticle.value = data?.prev || null
+      nextArticle.value = data?.next || null
     }
   } catch (error) {
     console.error('加载导航文章失败:', error)
@@ -428,16 +522,23 @@ const incrementViewCount = async () => {
 }
 
 const toggleLike = async () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    return
+  }
+
   try {
-    const response = await axios.post(`/api/v1/articles/${articleId.value}/like`)
+    const response = await axios.put(`/api/v1/articles/${articleId.value}/like`)
+    
     if (response.data.code === 200) {
-      isLiked.value = !isLiked.value
-      article.likeCount = response.data.data.likeCount
-      ElMessage.success(isLiked.value ? '点赞成功' : '取消点赞')
+      const result = response.data.data
+      // 更新本地状态，无需重新加载整篇文章
+      isLiked.value = result.isLiked
+      article.likeCount = result.likeCount
     }
   } catch (error) {
     console.error('点赞操作失败:', error)
-    ElMessage.error('点赞操作失败')
+    ElMessage.error('操作失败，请重试')
   }
 }
 
@@ -456,15 +557,31 @@ const shareArticle = () => {
   }
 }
 
+const toggleComments = () => {
+  showComments.value = !showComments.value
+  if (showComments.value) {
+    // 展开评论时，滚动到评论区域
+    nextTick(() => {
+      const commentsElement = document.querySelector('.article-comments')
+      if (commentsElement) {
+        commentsElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    })
+  }
+}
+
 const collectArticle = async () => {
+  if (!isLoggedIn.value) {
+    ElMessage.warning('请先登录')
+    return
+  }
+
   try {
-    const response = await axios.post(`/api/v1/articles/${articleId.value}/collect`)
-    if (response.data.code === 200) {
-      ElMessage.success('收藏成功')
-    }
+    // 暂时使用点赞接口作为收藏功能的替代
+    ElMessage.info('收藏功能开发中，敬请期待')
   } catch (error) {
     console.error('收藏失败:', error)
-    ElMessage.error('收藏失败，请先登录')
+    ElMessage.error('收藏失败')
   }
 }
 
@@ -488,6 +605,75 @@ const formatDate = (dateString) => {
   })
 }
 
+// 用户操作处理
+const handleUserAction = (command) => {
+  switch (command) {
+    case 'profile':
+      // 跳转到个人资料页面
+      break
+    case 'admin':
+      router.push('/admin')
+      break
+    case 'logout':
+      handleLogout()
+      break
+  }
+}
+
+
+// 检查登录状态
+const checkLoginStatus = () => {
+  const token = localStorage.getItem('auth_token')
+  const userInfoStr = localStorage.getItem('user_info')
+
+  if (token && userInfoStr) {
+    try {
+      const userData = JSON.parse(userInfoStr)
+      isLoggedIn.value = true
+      userInfo.value = userData
+    } catch (error) {
+      console.error('解析用户信息失败:', error)
+      isLoggedIn.value = false
+      userInfo.value = null
+      localStorage.removeItem('auth_token')
+      localStorage.removeItem('user_info')
+    }
+  } else {
+    isLoggedIn.value = false
+    userInfo.value = null
+  }
+}
+
+// 退出登录处理
+const handleLogout = async () => {
+  try {
+    const token = localStorage.getItem('auth_token')
+    if (token) {
+      await axios.post('/api/v1/auth/logout', {}, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+    }
+  } catch (error) {
+    console.error('退出登录失败:', error)
+  } finally {
+    // 清除本地存储
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_info')
+    localStorage.removeItem('remember_username')
+
+    // 更新状态
+    isLoggedIn.value = false
+    userInfo.value = null
+
+    ElMessage.success('退出登录成功')
+
+    // 刷新页面或重定向到首页
+    router.push('/')
+  }
+}
+
 // 监听器
 watch(() => route.params.id, (newId) => {
   if (newId) {
@@ -497,6 +683,9 @@ watch(() => route.params.id, (newId) => {
 
 // 生命周期
 onMounted(() => {
+  // 首先检查登录状态
+  checkLoginStatus()
+
   // 检查主题偏好
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
   isDark.value = prefersDark
@@ -509,6 +698,168 @@ onMounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--bg-primary);
+}
+
+/* 导航栏样式 */
+.article-header {
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-secondary);
+  padding: var(--space-4) 0;
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(10px);
+}
+
+.header-container {
+  max-width: none;
+  margin: 0;
+  padding: 0 var(--space-4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .header-container {
+    padding: 0 var(--space-3);
+  }
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--primary-600);
+  text-decoration: none;
+  padding: var(--space-2) 0;
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+  font-weight: var(--font-semibold);
+  font-size: var(--text-lg);
+}
+
+.back-link:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  font-size: var(--text-sm);
+}
+
+.action-btn:hover {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.user-menu .user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--primary-100);
+  color: var(--primary-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.user-menu .user-avatar:hover {
+  background: var(--primary-200);
+}
+
+/* 自定义下拉菜单样式 */
+.custom-dropdown {
+  background: var(--bg-elevated);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-primary);
+  padding: var(--space-1);
+  min-width: 120px;
+  width: max-content;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .custom-dropdown {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-secondary);
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-normal);
+  margin: 2px;
+  white-space: nowrap;
+}
+
+.dropdown-item:hover {
+  background: var(--bg-secondary);
+  color: var(--primary-600);
+}
+
+.dropdown-item .el-icon {
+  font-size: 14px;
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.dropdown-item:hover .el-icon {
+  color: var(--primary-600);
+}
+
+.dropdown-divider {
+  height: 1px;
+  background: var(--border-primary);
+  margin: var(--space-1) var(--space-2);
+}
+
+.logout-item {
+  color: var(--error);
+}
+
+.logout-item:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--error);
+}
+
+.logout-item .el-icon {
+  color: var(--error);
+}
+
+.logout-item:hover .el-icon {
+  color: var(--error);
 }
 
 .layout-main {
@@ -516,9 +867,9 @@ onMounted(() => {
 }
 
 .container-wide {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0 var(--space-4);
+  padding: 0 var(--space-6);
 }
 
 /* 面包屑导航 */
@@ -556,9 +907,10 @@ onMounted(() => {
 /* 文章布局 */
 .article-layout {
   display: grid;
-  grid-template-columns: 1fr 300px;
-  gap: var(--space-8);
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-6);
   margin-bottom: var(--space-12);
+  max-width: none;
 }
 
 /* 文章主体 */
@@ -571,20 +923,227 @@ onMounted(() => {
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+  margin-bottom: var(--space-8);
 }
 
-/* 文章头部 */
-.article-header {
+/* 文章英雄区域 - 有封面 */
+.article-hero {
+  position: relative;
+  height: 60vh;
+  min-height: 400px;
+  max-height: 600px;
+  overflow: hidden;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.3) 60%,
+    rgba(0, 0, 0, 0.7) 100%
+  );
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   padding: var(--space-8);
+  color: white;
+  z-index: 2;
+}
+
+.hero-meta {
+  display: flex;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.article-category,
+.reading-time {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
+.hero-title {
+  font-size: var(--text-5xl);
+  font-weight: var(--font-black);
+  line-height: 1.1;
+  margin: 0 0 var(--space-6) 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.hero-author {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hero-author .author-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-author .author-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.hero-author .author-name {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+}
+
+.hero-author .author-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  opacity: 0.9;
+}
+
+.meta-separator {
+  opacity: 0.6;
+}
+
+.hero-author .article-stats {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 简单文章头部 - 无封面 */
+.article-header-simple {
+  padding: var(--space-8);
+  text-align: center;
   border-bottom: 1px solid var(--border-secondary);
 }
 
-.article-title {
-  font-size: var(--text-4xl);
-  font-weight: var(--font-bold);
+.article-category-simple {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  background: var(--primary-100);
+  color: var(--primary-700);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  margin-bottom: var(--space-4);
+}
+
+.article-title-simple {
+  font-size: var(--text-5xl);
+  font-weight: var(--font-black);
   color: var(--text-primary);
-  line-height: 1.2;
+  line-height: 1.1;
   margin: 0 0 var(--space-6) 0;
+  letter-spacing: -0.025em;
+}
+
+.article-meta-simple {
+  display: flex;
+  justify-content: center;
+}
+
+.author-section {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.author-section .author-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid var(--border-secondary);
+}
+
+.author-section .author-info {
+  text-align: left;
+}
+
+.author-section .author-name {
+  display: block;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.view-count {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* 文章标签 */
+.article-tags {
+  padding: var(--space-6) var(--space-8);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.tags-container {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.article-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  color: var(--primary-600);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  text-decoration: none;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.article-tag:hover {
+  background: var(--primary-100);
+  color: var(--primary-700);
+  transform: translateY(-1px);
 }
 
 .article-meta {
@@ -699,13 +1258,14 @@ onMounted(() => {
 
 /* 文章内容 */
 .article-content {
-  padding: var(--space-8);
+  padding: var(--space-6) var(--space-8);
 }
 
 .prose {
   max-width: none;
   color: var(--text-primary);
   line-height: 1.75;
+  font-size: var(--text-base);
 }
 
 .prose h1,
@@ -790,10 +1350,101 @@ onMounted(() => {
   color: var(--primary-500);
 }
 
+.action-btn.like-btn:hover {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.action-btn.comment-btn:hover {
+  border-color: var(--success);
+  color: var(--success);
+}
+
 .action-btn.active {
   background: var(--primary-500);
   border-color: var(--primary-500);
   color: white;
+}
+
+.action-btn.active.like-btn {
+  background: var(--error) !important;
+  border-color: var(--error) !important;
+  color: white !important;
+}
+
+.action-btn.active.comment-btn {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+/* 文章内评论区域 */
+.article-comments {
+  border-top: 1px solid var(--border-secondary);
+}
+
+.comments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-6) var(--space-8);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.comments-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.comments-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.comments-title .el-icon {
+  font-size: var(--text-lg);
+  color: var(--primary-500);
+}
+
+.comments-count {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-primary);
+}
+
+.comments-content {
+  padding: var(--space-6) var(--space-8);
+}
+
+.close-comments-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border-primary);
+  border-radius: 50%;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.close-comments-btn:hover {
+  background: var(--bg-secondary);
+  border-color: var(--primary-400);
+  color: var(--primary-500);
+  transform: translateY(-1px);
 }
 
 /* 文章导航 */
@@ -1005,16 +1656,6 @@ onMounted(() => {
 .toc-level-3 { margin-left: var(--space-6); }
 .toc-level-4 { margin-left: var(--space-8); }
 
-/* 评论区域 */
-.comments-section {
-  background: var(--bg-secondary);
-  padding: var(--space-8) 0;
-}
-
-.comments-container {
-  max-width: 800px;
-  margin: 0 auto;
-}
 
 /* 加载和错误状态 */
 .loading-section,
@@ -1053,7 +1694,7 @@ onMounted(() => {
 /* 响应式设计 */
 @media (max-width: 768px) {
   .container-wide {
-    padding: 0 var(--space-2);
+    padding: 0 var(--space-4);
   }
 
   .article-layout {
@@ -1065,21 +1706,44 @@ onMounted(() => {
     order: -1;
   }
 
-  .article-title {
-    font-size: var(--text-3xl);
+
+  .hero-title,
+  .article-title-simple {
+    font-size: var(--text-4xl);
   }
 
-  .article-header {
+  .article-hero {
+    height: 50vh;
+    min-height: 300px;
+  }
+
+  .hero-content {
     padding: var(--space-6);
+  }
+
+  .article-header-simple {
+    padding: var(--space-6);
+  }
+
+  .article-tags {
+    padding: var(--space-4) var(--space-6);
   }
 
   .article-content {
-    padding: var(--space-6);
+    padding: var(--space-4) var(--space-6);
   }
 
   .article-actions {
     padding: var(--space-4) var(--space-6);
     flex-wrap: wrap;
+  }
+
+  .comments-header {
+    padding: var(--space-4) var(--space-6);
+  }
+
+  .comments-content {
+    padding: var(--space-4) var(--space-6);
   }
 
   .article-navigation {
@@ -1092,6 +1756,19 @@ onMounted(() => {
   }
 }
 
+/* 用户信息样式 */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+}
+
 @media (max-width: 480px) {
   .breadcrumb {
     font-size: var(--text-xs);
@@ -1102,8 +1779,42 @@ onMounted(() => {
     max-width: 120px;
   }
 
-  .article-title {
-    font-size: var(--text-2xl);
+  .hero-title,
+  .article-title-simple {
+    font-size: var(--text-3xl);
+  }
+
+  .article-hero {
+    height: 40vh;
+    min-height: 250px;
+  }
+
+  .hero-content {
+    padding: var(--space-4);
+  }
+
+  .hero-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+
+  .author-section {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-3);
+  }
+
+  .author-section .author-info {
+    text-align: center;
+  }
+
+  .article-header-simple {
+    padding: var(--space-4);
+  }
+
+  .article-tags {
+    padding: var(--space-3) var(--space-4);
   }
 
   .meta-primary {

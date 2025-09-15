@@ -8,15 +8,20 @@ import org.example.ganggrbkbackend.common.utils.PageResult;
 import org.example.ganggrbkbackend.common.utils.Result;
 import org.example.ganggrbkbackend.domain.dto.ArticleQueryDTO;
 import org.example.ganggrbkbackend.domain.dto.ArticleSaveDTO;
+import org.example.ganggrbkbackend.domain.entity.UserLike;
 import org.example.ganggrbkbackend.domain.vo.ArticleDetailVO;
 import org.example.ganggrbkbackend.domain.vo.ArticleListVO;
+import org.example.ganggrbkbackend.domain.vo.LikeStatusVO;
 import org.example.ganggrbkbackend.service.ArticleService;
+import org.example.ganggrbkbackend.service.UserLikeService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 文章管理控制器
@@ -31,6 +36,7 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleService articleService;
+    private final UserLikeService userLikeService;
 
     @Operation(summary = "分页查询文章列表")
     @GetMapping
@@ -43,20 +49,20 @@ public class ArticleController {
     @GetMapping("/{id}")
     public Result<ArticleDetailVO> getArticleDetail(
             @Parameter(description = "文章ID", required = true)
-            @PathVariable @NotNull(message = "文章ID不能为空") Long id) {
-        ArticleDetailVO articleDetail = articleService.getArticleDetail(id);
+            @PathVariable @NotNull(message = "文章ID不能为空") Long id,
+            HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("currentUserId");
+        ArticleDetailVO articleDetail = articleService.getArticleDetail(id, userId);
         return Result.success(articleDetail);
     }
 
-    @Operation(summary = "查看文章详情（前台）")
-    @GetMapping("/{id}/view")
-    public Result<ArticleDetailVO> viewArticle(
+    @Operation(summary = "增加文章浏览量")
+    @PostMapping("/{id}/view")
+    public Result<Void> incrementViewCount(
             @Parameter(description = "文章ID", required = true)
             @PathVariable @NotNull(message = "文章ID不能为空") Long id) {
-        // 增加浏览量
         articleService.incrementViewCount(id);
-        ArticleDetailVO articleDetail = articleService.getArticleDetail(id);
-        return Result.success(articleDetail);
+        return Result.success("浏览量增加成功");
     }
 
     @Operation(summary = "创建文章")
@@ -117,11 +123,20 @@ public class ArticleController {
 
     @Operation(summary = "点赞文章")
     @PutMapping("/{id}/like")
-    public Result<Void> likeArticle(
+    public Result<LikeStatusVO> likeArticle(
             @Parameter(description = "文章ID", required = true)
-            @PathVariable @NotNull(message = "文章ID不能为空") Long id) {
-        articleService.incrementLikeCount(id);
-        return Result.success("点赞成功");
+            @PathVariable @NotNull(message = "文章ID不能为空") Long id,
+            HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("currentUserId");
+        LikeStatusVO result = userLikeService.toggleLike(userId, id, UserLike.TARGET_TYPE_ARTICLE);
+        return Result.ok(result);
+    }
+
+    @Operation(summary = "同步所有文章点赞数")
+    @PostMapping("/sync-like-count")
+    public Result<String> syncAllArticleLikeCount() {
+        userLikeService.syncAllArticleLikeCount();
+        return Result.ok("同步完成");
     }
 
     @Operation(summary = "查询热门文章")
@@ -140,5 +155,25 @@ public class ArticleController {
             @RequestParam(defaultValue = "10") Integer limit) {
         List<ArticleListVO> latestArticles = articleService.getLatestArticles(limit);
         return Result.success(latestArticles);
+    }
+
+    @Operation(summary = "获取文章导航（上一篇/下一篇）")
+    @GetMapping("/{id}/navigation")
+    public Result<Object> getArticleNavigation(
+            @Parameter(description = "文章ID", required = true)
+            @PathVariable @NotNull(message = "文章ID不能为空") Long id) {
+        Map<String, Object> navigation = articleService.getArticleNavigation(id);
+        return Result.success("文章导航获取成功", navigation);
+    }
+
+    @Operation(summary = "获取相关文章推荐")
+    @GetMapping("/{id}/related")
+    public Result<List<ArticleListVO>> getRelatedArticles(
+            @Parameter(description = "文章ID", required = true)
+            @PathVariable @NotNull(message = "文章ID不能为空") Long id,
+            @Parameter(description = "推荐数量")
+            @RequestParam(defaultValue = "5") Integer limit) {
+        List<ArticleListVO> relatedArticles = articleService.getRelatedArticles(id, limit);
+        return Result.success(relatedArticles);
     }
 }

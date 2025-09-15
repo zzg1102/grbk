@@ -48,22 +48,30 @@ public class MybatisPlusConfig {
 
         @Override
         public void insertFill(MetaObject metaObject) {
-            this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-            this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-
-            // 这里可以从SecurityContext获取当前用户ID
-            // 暂时使用默认值
-            this.strictInsertFill(metaObject, "createBy", Long.class, 1L);
-            this.strictInsertFill(metaObject, "updateBy", Long.class, 1L);
+            // 只有当字段存在时才自动填充
+            if (metaObject.hasSetter("createTime")) {
+                this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
+            }
+            if (metaObject.hasSetter("updateTime")) {
+                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+            }
+            if (metaObject.hasSetter("createBy")) {
+                this.strictInsertFill(metaObject, "createBy", Long.class, 1L);
+            }
+            if (metaObject.hasSetter("updateBy")) {
+                this.strictInsertFill(metaObject, "updateBy", Long.class, 1L);
+            }
         }
 
         @Override
         public void updateFill(MetaObject metaObject) {
-            this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-
-            // 这里可以从SecurityContext获取当前用户ID
-            // 暂时使用默认值
-            this.strictUpdateFill(metaObject, "updateBy", Long.class, 1L);
+            // 只有当字段存在时才自动填充
+            if (metaObject.hasSetter("updateTime")) {
+                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+            }
+            if (metaObject.hasSetter("updateBy")) {
+                this.strictUpdateFill(metaObject, "updateBy", Long.class, 1L);
+            }
         }
     }
 }

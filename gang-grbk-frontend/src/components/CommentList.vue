@@ -2,43 +2,57 @@
   <div class="comment-list">
     <!-- 评论输入框 -->
     <div class="comment-input">
-      <el-card shadow="hover">
-        <template #header>
-          <span>发表评论</span>
-        </template>
+      <div class="comment-form">
+        <div class="form-header">
+          <h4 class="form-title">
+            <el-icon><EditPen /></el-icon>
+            <span>发表评论</span>
+          </h4>
+        </div>
         <div class="input-area">
-          <el-input
-            v-model="newComment.content"
-            type="textarea"
-            :rows="4"
-            placeholder="写下您的评论..."
-            maxlength="500"
-            show-word-limit
-            :disabled="!isLoggedIn"
-          />
+          <div class="input-wrapper">
+            <textarea
+              v-model="newComment.content"
+              class="comment-textarea"
+              placeholder="写下您的评论..."
+              maxlength="500"
+              :disabled="!isLoggedIn"
+              rows="4"
+            ></textarea>
+            <div class="textarea-footer">
+              <span class="char-count">{{ newComment.content.length }}/500</span>
+            </div>
+          </div>
           <div class="input-actions">
             <div class="login-tip" v-if="!isLoggedIn">
-              <el-text type="info">请先登录后再发表评论</el-text>
+              <el-icon><InfoFilled /></el-icon>
+              <span>请先登录后再发表评论</span>
             </div>
-            <el-button
-              type="primary"
+            <button
+              class="submit-btn"
               @click="submitComment"
-              :loading="submitting"
-              :disabled="!newComment.content.trim() || !isLoggedIn"
+              :disabled="!newComment.content.trim() || !isLoggedIn || submitting"
+              :class="{ loading: submitting }"
             >
-              发表评论
-            </el-button>
+              <el-icon v-if="submitting"><Loading /></el-icon>
+              <el-icon v-else><Check /></el-icon>
+              <span>{{ submitting ? '发表中...' : '发表评论' }}</span>
+            </button>
           </div>
         </div>
-      </el-card>
+      </div>
     </div>
 
     <!-- 评论列表 -->
     <div class="comments" v-if="comments.length > 0">
-      <el-card shadow="hover">
-        <template #header>
-          <span>评论列表 ({{ comments.length }})</span>
-        </template>
+      <div class="comments-container">
+        <div class="comments-header">
+          <h4 class="comments-title">
+            <el-icon><ChatDotRound /></el-icon>
+            <span>全部评论</span>
+          </h4>
+          <span class="comments-count">{{ comments.length }} 条</span>
+        </div>
 
         <div class="comment-item" v-for="comment in comments" :key="comment.id">
           <div class="comment-avatar">
@@ -141,7 +155,7 @@
             </div>
           </div>
         </div>
-      </el-card>
+      </div>
     </div>
 
     <!-- 暂无评论 -->
@@ -154,7 +168,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Star, ChatDotRound } from '@element-plus/icons-vue'
+import { Star, ChatDotRound, EditPen, InfoFilled, Loading, Check } from '@element-plus/icons-vue'
 import axios from 'axios'
 
 const props = defineProps({
@@ -163,6 +177,8 @@ const props = defineProps({
     required: true
   }
 })
+
+const emit = defineEmits(['comment-updated'])
 
 // 响应式数据
 const comments = ref([])
@@ -177,11 +193,26 @@ const newComment = ref({
   content: ''
 })
 
-// 模拟登录状态，实际应从store获取
+// 检查用户登录状态
 const isLoggedIn = computed(() => {
-  // TODO: 从store获取用户登录状态
-  return false
+  const token = localStorage.getItem('auth_token')
+  const userInfo = localStorage.getItem('user_info')
+  return !!(token && userInfo)
 })
+
+// 获取用户信息
+const getUserInfo = () => {
+  const userInfoStr = localStorage.getItem('user_info')
+  if (userInfoStr) {
+    try {
+      return JSON.parse(userInfoStr)
+    } catch (error) {
+      console.error('解析用户信息失败:', error)
+      return null
+    }
+  }
+  return null
+}
 
 // 加载评论列表
 const loadComments = async () => {
@@ -205,6 +236,12 @@ const submitComment = async () => {
     return
   }
 
+  const token = localStorage.getItem('auth_token')
+  if (!token) {
+    ElMessage.error('请先登录')
+    return
+  }
+
   try {
     submitting.value = true
     const response = await axios.post('/api/v1/comments', {
@@ -216,6 +253,8 @@ const submitComment = async () => {
       ElMessage.success('评论发表成功')
       newComment.value.content = ''
       await loadComments()
+      // 通知父组件更新文章数据
+      emit('comment-updated')
     } else {
       ElMessage.error(response.data.message || '评论发表失败')
     }
@@ -245,6 +284,12 @@ const submitReply = async (parentComment) => {
     return
   }
 
+  const token = localStorage.getItem('auth_token')
+  if (!token) {
+    ElMessage.error('请先登录')
+    return
+  }
+
   try {
     replying.value = true
     const response = await axios.post('/api/v1/comments', {
@@ -257,6 +302,8 @@ const submitReply = async (parentComment) => {
       ElMessage.success('回复发表成功')
       cancelReply()
       await loadComments()
+      // 通知父组件更新文章数据
+      emit('comment-updated')
     } else {
       ElMessage.error(response.data.message || '回复发表失败')
     }
@@ -270,6 +317,12 @@ const submitReply = async (parentComment) => {
 
 // 点赞评论
 const likeComment = async (comment) => {
+  const token = localStorage.getItem('auth_token')
+  if (!token) {
+    ElMessage.error('请先登录')
+    return
+  }
+
   try {
     comment.liking = true
     const response = await axios.post(`/api/v1/comments/${comment.id}/like`)
@@ -314,34 +367,197 @@ onMounted(() => {
 
 <style scoped>
 .comment-list {
-  margin-top: 2rem;
+  width: 100%;
 }
 
 .comment-input {
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-6);
+}
+
+.comment-form {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.form-header {
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.form-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.form-title .el-icon {
+  font-size: var(--text-lg);
+  color: var(--primary-500);
 }
 
 .input-area {
+  padding: var(--space-6);
+}
+
+.input-wrapper {
+  margin-bottom: var(--space-4);
+}
+
+.comment-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: var(--space-4);
+  border: 2px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  resize: vertical;
+  transition: all var(--duration-fast) var(--ease-out);
+  outline: none;
+}
+
+.comment-textarea:focus {
+  border-color: var(--primary-400);
+  box-shadow: 0 0 0 3px rgba(var(--primary-500-rgb), 0.1);
+}
+
+.comment-textarea:disabled {
+  background: var(--bg-secondary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+}
+
+.comment-textarea::placeholder {
+  color: var(--text-tertiary);
+}
+
+.textarea-footer {
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: var(--space-2);
+}
+
+.char-count {
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
 }
 
 .input-actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-4);
+}
+
+.login-tip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--info);
+  font-size: var(--text-sm);
+}
+
+.login-tip .el-icon {
+  font-size: var(--text-base);
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  background: var(--primary-500);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: var(--primary-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(var(--primary-500-rgb), 0.3);
+}
+
+.submit-btn:disabled {
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submit-btn.loading {
+  cursor: wait;
+}
+
+/* 评论列表样式 */
+.comments-container {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-secondary);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.comments-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-secondary);
+}
+
+.comments-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.comments-title .el-icon {
+  font-size: var(--text-lg);
+  color: var(--success-500);
+}
+
+.comments-count {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  background: var(--bg-elevated);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-primary);
 }
 
 .comment-item {
   display: flex;
-  gap: 1rem;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f0f0f0;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  border-bottom: 1px solid var(--border-secondary);
+  transition: background var(--duration-fast) var(--ease-out);
 }
 
 .comment-item:last-child {
   border-bottom: none;
+}
+
+.comment-item:hover {
+  background: var(--bg-secondary);
 }
 
 .comment-avatar {
